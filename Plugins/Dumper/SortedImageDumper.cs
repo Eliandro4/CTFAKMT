@@ -83,8 +83,8 @@ namespace Dumper
                                     {
                                         if (!LostandFound.Contains(bg.Image))
                                             LostandFound.Add(bg.Image);
-                                        images[bg.Image].bitmap.Write($"{objectFolder}{oi.name}.png");
-                                        images[bg.Image].bitmap.Write($"{frameFolder}[UNSORTED]/{oi.name}.png");
+                                         images[bg.Image].bitmap.Write($"{objectFolder}{oi.name}.png", MagickFormat.Png);
+                                         images[bg.Image].bitmap.Write($"{frameFolder}[UNSORTED]/{oi.name}.png", MagickFormat.Png);
                                         retry = 5;
                                     }
                                     catch
@@ -107,8 +107,8 @@ namespace Dumper
                                     {
                                         if (!LostandFound.Contains(qbg.Image))
                                             LostandFound.Add(qbg.Image);
-                                        images[qbg.Image].bitmap.Write($"{objectFolder}{oi.name}.png");
-                                        images[qbg.Image].bitmap.Write($"{frameFolder}[UNSORTED]/{oi.name}.png");
+                                         images[qbg.Image].bitmap.Write($"{objectFolder}{oi.name}.png", MagickFormat.Png);
+                                         images[qbg.Image].bitmap.Write($"{frameFolder}[UNSORTED]/{oi.name}.png", MagickFormat.Png);
                                         retry = 5;
                                     }
                                     catch
@@ -166,8 +166,8 @@ namespace Dumper
                                                     {
                                                         if (!LostandFound.Contains(frm))
                                                             LostandFound.Add(frm);
-                                                        images[frm].bitmap.Write($"{directionFolder}_{i}.png");
-                                                        images[frm].bitmap.Write($"{frameFolder}[UNSORTED]/{oi.name}_{anim.Key}-{dir.Key}_{i}.png");
+                                                         images[frm].bitmap.Write($"{directionFolder}_{i}.png", MagickFormat.Png);
+                                                         images[frm].bitmap.Write($"{frameFolder}[UNSORTED]/{oi.name}_{anim.Key}-{dir.Key}_{i}.png", MagickFormat.Png);
                                                         retry = 5;
                                                     }
                                                     catch
@@ -200,8 +200,8 @@ namespace Dumper
                                                 {
                                                     if (!LostandFound.Contains(cntrFrm))
                                                         LostandFound.Add(cntrFrm);
-                                                    bmp.Write($"{objectFolder}{cntrFrm}.png");
-                                                    bmp.Write($"{frameFolder}[UNSORTED]/{oi.name}_{cntrFrm}.png");
+                                                     bmp.Write($"{objectFolder}{cntrFrm}.png", MagickFormat.Png);
+                                                     bmp.Write($"{frameFolder}[UNSORTED]/{oi.name}_{cntrFrm}.png", MagickFormat.Png);
                                                     retry = 5;
                                                 }
                                                 catch
@@ -296,7 +296,7 @@ namespace Dumper
                     savedvar = img.Key;
                     if (LostandFound.Contains(savedvar)) continue;
                     Directory.CreateDirectory(lafFolder);
-                    img.Value.bitmap.Write($"{lafFolder}{savedvar}.png");
+                    img.Value.bitmap.Write($"{lafFolder}{savedvar}.png", MagickFormat.Png);
                     LostandFound.Add(savedvar);
 
                     Console.WriteLine($"Lost and Found | {img.Key}");

@@ -58,7 +58,7 @@ namespace CTFAKModTool
                     var bmp = img.bitmap;
                     if (bmp == null) continue;
                     var name = $"img_{img.Handle}";
-                    bmp.Write(Path.Combine(dir, $"{name}.png"));
+                    bmp.Write(Path.Combine(dir, $"{name}.png"), MagickFormat.Png);
                 }
                 catch (Exception e)
                 {

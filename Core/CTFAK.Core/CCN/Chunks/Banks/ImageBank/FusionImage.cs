@@ -105,7 +105,7 @@ namespace CTFAK.Core.CCN.Chunks.Banks.ImageBank
                         for (int x = 0; x < Width; x++)
                         {
                             int idx = (y * stride) + (x * 4);
-                            pixels.SetPixel(x, y, new byte[] { colorArray[idx + 3], colorArray[idx + 0], colorArray[idx + 1], colorArray[idx + 2] });
+                            pixels.SetPixel(x, y, new byte[] { colorArray[idx + 2], colorArray[idx + 1], colorArray[idx + 0], colorArray[idx + 3] });
                         }
                     }
                 }
@@ -134,9 +134,9 @@ namespace CTFAK.Core.CCN.Chunks.Banks.ImageBank
                 for (var x = 0; x < Width; x++)
                 {
                     var pixel = pixels.GetPixel(x, y);
-                    imageData[position] = pixel.GetChannel(0);
+                    imageData[position] = pixel.GetChannel(2);
                     imageData[position + 1] = pixel.GetChannel(1);
-                    imageData[position + 2] = pixel.GetChannel(2);
+                    imageData[position + 2] = pixel.GetChannel(0);
                     position += 3;
                 }
 
