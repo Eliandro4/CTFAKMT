@@ -2,12 +2,13 @@
 #include <string>
 #include <string.h>
 #include <cstring>
+#include <cstdint>
 #include "tinf.h"
 //#include "tinflate.c"
 
 
-#ifdef _WIN32
-#define DllExport  __declspec(dllexport) 
+#if defined(_WIN32)
+#define DllExport  __declspec(dllexport)
 #else
 #define DllExport __attribute__ ((visibility ("default")))
 #endif // DEBUG
@@ -194,7 +195,7 @@ extern "C" {
 	DllExport uint32_t GenChecksum(wchar_t* name, wchar_t* password)
 	{
 		signed int xor_result; // eax@1
-		__int16 v2; // cx@1
+		int16_t v2; // cx@1
 		wchar_t* v3; // edx@1
 		wchar_t* v4; // esi@3
 		const wchar_t* v5; // edx@3

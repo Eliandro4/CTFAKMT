@@ -3,7 +3,6 @@ using CTFAK.Memory;
 using CTFAK.Utils;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Reflection.Emit;
@@ -214,7 +213,7 @@ namespace CTFAK.CCN.Chunks.Frame
                         {
                             layers.Items[i].Effect = chunkReader.ReadInt16();
                             layers.Items[i].EffectParam = chunkReader.ReadInt16();
-                            layers.Items[i].RGBCoeff = chunkReader.ReadColor();
+                            layers.Items[i].RGBCoeff = chunkReader.ReadABGR();
                             layers.Items[i].InkEffect = chunkReader.ReadInt32();
                             var numberOfParams = chunkReader.ReadInt32();
                             var offset = chunkReader.ReadInt32();
@@ -278,7 +277,7 @@ namespace CTFAK.CCN.Chunks.Frame
                     case 13129: // Frame Effects
                         Effect = chunkReader.ReadInt16();
                         EffectParam = chunkReader.ReadInt16();
-                        RGBCoeff = chunkReader.ReadColor();
+                        RGBCoeff = chunkReader.ReadABGR();
                         InkEffect = chunkReader.ReadInt32();
                         var FrmNumberOfParams = chunkReader.ReadInt32();
                         if (CTFAKCore.parameters.Contains("-chunk_info"))

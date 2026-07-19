@@ -4,7 +4,6 @@ using CTFAK.Utils;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;

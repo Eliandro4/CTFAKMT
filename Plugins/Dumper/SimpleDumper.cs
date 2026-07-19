@@ -54,7 +54,7 @@ namespace Dumper
                 var newTask = new Task(() =>
                 {
                     var bmp = image.bitmap;
-                    bmp.Save($"Dumps\\{outPath}\\Images\\{image.Handle}.png");
+                    bmp.Write($"Dumps\\{outPath}\\Images\\{image.Handle}.png");
                 });
                 tasks[i] = newTask;
                 newTask.Start();

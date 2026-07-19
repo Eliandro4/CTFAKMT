@@ -1,11 +1,11 @@
 ﻿using System.Collections.Generic;
-using System.Drawing;
 using System.Runtime.CompilerServices;
 using CTFAK.CCN;
 using CTFAK.CCN.Chunks.Banks;
 using CTFAK.FileReaders;
 using CTFAK.Memory;
 using CTFAK.Utils;
+using ImageMagick;
 
 namespace CTFAK.EXE
 {
@@ -29,7 +29,7 @@ namespace CTFAK.EXE
             game.Read(reader);
         }
 
-        public Dictionary<int, Bitmap> getIcons()
+        public Dictionary<int, MagickImage> getIcons()
         {
             return ApkFileReader.androidIcons;
         }

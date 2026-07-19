@@ -69,7 +69,9 @@ namespace CTFAK
         public static void DrawArt2()
         {
             Console.ForegroundColor = ConsoleColor.DarkYellow;
-            var coeff = Console.WindowWidth / Console.WindowHeight;
+            int coeff = 0;
+            if (Console.WindowHeight > 0)
+                coeff = Console.WindowWidth / Console.WindowHeight;
             foreach (var item in art2)
             {
                 //foreach (var c in item)

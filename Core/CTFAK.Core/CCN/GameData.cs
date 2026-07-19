@@ -6,7 +6,6 @@ using CTFAK.Memory;
 using CTFAK.Utils;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
@@ -20,6 +19,7 @@ using CTFAK.Core.CCN.Chunks;
 using System.Reflection.Metadata.Ecma335;
 using CTFAK.Core.CCN.Chunks.Banks.ImageBank;
 using CTFAK.Core.CCN.Chunks.Banks.SoundBank;
+using ImageMagick;
 
 namespace CTFAK.CCN
 {
@@ -46,7 +46,7 @@ namespace CTFAK.CCN
         public bool Exe_Only;
 
         public AppMenu menu;
-        public Bitmap Icon;
+        public MagickImage Icon;
 
         public AppHeader header;
         public ExtendedHeader ExtHeader;

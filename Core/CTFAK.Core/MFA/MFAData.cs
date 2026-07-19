@@ -7,7 +7,6 @@ using CTFAK.Utils;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Drawing;
 using System.IO;
 
 
@@ -409,7 +408,7 @@ namespace CTFAK.MFA
             CustomQuals = new List<Tuple<string, int>>();
             for (int i = 0; i < QualCount; i++) //qualifiers
             {
-                var name = reader.ReadAscii(reader.ReadInt32());
+                var name = reader.AutoReadUnicode();
                 var handle = reader.ReadInt32();
                 CustomQuals.Add(new Tuple<string, int>(name, handle));
             }
@@ -451,8 +450,43 @@ namespace CTFAK.MFA
             }
 
             reader.Seek(nextOffset);
-            Chunks = new MFAChunks();
-            Chunks.Read(reader);
+
+            while (true)
+            {
+                byte id = reader.ReadByte();
+                int size = reader.ReadInt32();
+
+                if (id == 0x009A) // icon images
+                {
+                    List<int> moreIconImages = new();
+                    int count = reader.ReadInt32();
+                    for (int i = 0; i < count; i++)
+                    {
+                        moreIconImages.Add(reader.ReadInt32());
+                    }
+
+                    int num1 = moreIconImages[0];
+                    int num2 = moreIconImages[1];
+
+                    if (!Icons.Items.ContainsKey(num1) && !Icons.Items.ContainsKey(num2))
+                    {
+                        Logger.Log($"One of the icon images: {num1}, {num2} is not found in the icon bank. doing hack");
+
+                        //i have only seen this issue with my test mfa - shishkabob
+                        num2 = num1 - 1;
+                    }
+
+                    IconImages.Add(num1);
+                    IconImages.Add(num2);
+
+                    break; // we only care about icons for now
+                }
+                else
+                {
+                    reader.Seek(size, SeekOrigin.Current);
+                }
+            }
+
             reader.Dispose();
             return;
         }

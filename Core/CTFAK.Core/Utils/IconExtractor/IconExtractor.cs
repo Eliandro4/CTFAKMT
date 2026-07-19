@@ -1,283 +1,257 @@
-﻿/*
- *  IconExtractor/IconUtil for .NET
- *  Copyright (C) 2014 Tsuda Kageyu. All rights reserved.
- *
- *  Redistribution and use in source and binary forms, with or without
- *  modification, are permitted provided that the following conditions
- *  are met:
- *
- *   1. Redistributions of source code must retain the above copyright
- *      notice, this list of conditions and the following disclaimer.
- *   2. Redistributions in binary form must reproduce the above copyright
- *      notice, this list of conditions and the following disclaimer in the
- *      documentation and/or other materials provided with the distribution.
- *
- *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
- *  TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
- *  PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER
- *  OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
- *  EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
- *  PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
- *  PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
- *  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
- *  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Drawing;
 using System.IO;
 using System.Runtime.InteropServices;
-using System.Text;
+using ImageMagick;
 
 namespace TsudaKageyu
 {
     public class IconExtractor
     {
-        ////////////////////////////////////////////////////////////////////////
-        // Constants
+        private byte[][] iconData;
 
-        // Flags for LoadLibraryEx().
+        public int Count => iconData?.Length ?? 0;
 
-        private const uint LOAD_LIBRARY_AS_DATAFILE = 0x00000002;
-
-        // Resource types for EnumResourceNames().
-
-        private readonly static IntPtr RT_ICON = (IntPtr)3;
-        private readonly static IntPtr RT_GROUP_ICON = (IntPtr)14;
-
-        private const int MAX_PATH = 260;
-
-        ////////////////////////////////////////////////////////////////////////
-        // Fields
-
-        private byte[][] iconData = null;   // Binary data of each icon.
-
-        ////////////////////////////////////////////////////////////////////////
-        // Public properties
-
-        /// <summary>
-        /// Gets the full path of the associated file.
-        /// </summary>
-        public string FileName
-        {
-            get;
-            private set;
-        }
-
-        /// <summary>
-        /// Gets the count of the icons in the associated file.
-        /// </summary>
-        public int Count
-        {
-            get { return iconData.Length; }
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the IconExtractor class from the specified file name.
-        /// </summary>
-        /// <param name="fileName">The file to extract icons from.</param>
         public IconExtractor(string fileName)
         {
-            Initialize(fileName);
+            iconData = ExtractIconsFromPE(fileName);
         }
 
-        /// <summary>
-        /// Extracts an icon from the file.
-        /// </summary>
-        /// <param name="index">Zero based index of the icon to be extracted.</param>
-        /// <returns>A System.Drawing.Icon object.</returns>
-        /// <remarks>Always returns new copy of the Icon. It should be disposed by the user.</remarks>
-        public Icon GetIcon(int index)
+        public MagickImage GetIcon(int index)
         {
             if (index < 0 || Count <= index)
                 throw new ArgumentOutOfRangeException("index");
 
-            // Create an Icon from the .ico file in memory.
-
-            using (var ms = new MemoryStream(iconData[index]))
-            {
-                return new Icon(ms);
-            }
+            using var ms = new MemoryStream(iconData[index]);
+            return new MagickImage(ms);
         }
 
-        /// <summary>
-        /// Extracts all the icons from the file.
-        /// </summary>
-        /// <returns>An array of System.Drawing.Icon objects.</returns>
-        /// <remarks>Always returns new copies of the Icons. They should be disposed by the user.</remarks>
-        public Icon[] GetAllIcons()
+        public List<MagickImage> GetAllIcons()
         {
-            var icons = new List<Icon>();
+            var icons = new List<MagickImage>();
             for (int i = 0; i < Count; ++i)
                 icons.Add(GetIcon(i));
-
-            return icons.ToArray();
+            return icons;
         }
 
-        /// <summary>
-        /// Save an icon to the specified output Stream.
-        /// </summary>
-        /// <param name="index">Zero based index of the icon to be saved.</param>
-        /// <param name="outputStream">The Stream to save to.</param>
-        public void Save(int index, Stream outputStream)
+        private static byte[][] ExtractIconsFromPE(string fileName)
         {
-            if (index < 0 || Count <= index)
-                throw new ArgumentOutOfRangeException("index");
-
-            if (outputStream == null)
-                throw new ArgumentNullException("outputStream");
-
-            var data = iconData[index];
-            outputStream.Write(data, 0, data.Length);
-        }
-
-        private void Initialize(string fileName)
-        {
-            if (fileName == null)
-                throw new ArgumentNullException("fileName");
-
-            IntPtr hModule = IntPtr.Zero;
             try
             {
-                hModule = NativeMethods.LoadLibraryEx(fileName, IntPtr.Zero, LOAD_LIBRARY_AS_DATAFILE);
-                if (hModule == IntPtr.Zero)
-                    throw new Win32Exception();
+                using var fs = new FileStream(fileName, FileMode.Open, FileAccess.Read);
+                using var br = new BinaryReader(fs);
 
-                FileName = GetFileName(hModule);
+                fs.Seek(0x3C, SeekOrigin.Begin);
+                int peOffset = br.ReadInt32();
 
-                // Enumerate the icon resource and build .ico files in memory.
+                fs.Seek(peOffset, SeekOrigin.Begin);
+                uint peSignature = br.ReadUInt32();
+                if (peSignature != 0x4550) return null;
 
-                var tmpData = new List<byte[]>();
+                br.ReadUInt16();
+                ushort numSections = br.ReadUInt16();
+                br.ReadUInt32();
+                br.ReadUInt32();
+                br.ReadUInt16();
+                br.ReadUInt16();
 
-                ENUMRESNAMEPROC callback = (h, t, name, l) =>
+                uint resourceVA = 0;
+                uint resourceSize = 0;
+                var sections = new List<(uint VA, uint Size, uint Pointer)>();
+                for (int i = 0; i < numSections; i++)
                 {
-                    // Refer to the following URL for the data structures used here:
-                    // http://msdn.microsoft.com/en-us/library/ms997538.aspx
+                    byte[] name = br.ReadBytes(8);
+                    uint sizeOfRawData = br.ReadUInt32();
+                    uint pointerToRawData = br.ReadUInt32();
+                    br.ReadUInt32();
+                    br.ReadUInt32();
+                    br.ReadUInt32();
+                    br.ReadUInt32();
 
-                    // RT_GROUP_ICON resource consists of a GRPICONDIR and GRPICONDIRENTRY's.
-
-                    var dir = GetDataFromResource(hModule, RT_GROUP_ICON, name);
-
-                    // Calculate the size of an entire .icon file.
-
-                    int count = BitConverter.ToUInt16(dir, 4);  // GRPICONDIR.idCount
-                    int len = 6 + 16 * count;                   // sizeof(ICONDIR) + sizeof(ICONDIRENTRY) * count
-                    for (int i = 0; i < count; ++i)
-                        len += BitConverter.ToInt32(dir, 6 + 14 * i + 8);   // GRPICONDIRENTRY.dwBytesInRes
-
-                    using (var dst = new BinaryWriter(new MemoryStream(len)))
+                    sections.Add((resourceVA, sizeOfRawData, pointerToRawData));
+                    if (name[0] == '.' && name[1] == 'r' && name[2] == 's' && name[3] == 'r' &&
+                        name[4] == 'c')
                     {
-                        // Copy GRPICONDIR to ICONDIR.
+                        resourceVA = sections[i].VA;
+                        resourceSize = sections[i].Size;
+                    }
+                }
 
-                        dst.Write(dir, 0, 6);
+                if (resourceSize == 0) return null;
 
-                        int picOffset = 6 + 16 * count; // sizeof(ICONDIR) + sizeof(ICONDIRENTRY) * count
+                fs.Seek((long)sections[0].Pointer, SeekOrigin.Begin);
 
-                        for (int i = 0; i < count; ++i)
-                        {
-                            // Load the picture.
+                uint characteristics = br.ReadUInt32();
+                uint timeDateStamp = br.ReadUInt32();
+                ushort majorVersion = br.ReadUInt16();
+                ushort minorVersion = br.ReadUInt16();
+                ushort namedEntries = br.ReadUInt16();
+                ushort idEntries = br.ReadUInt16();
 
-                            ushort id = BitConverter.ToUInt16(dir, 6 + 14 * i + 12);    // GRPICONDIRENTRY.nID
-                            var pic = GetDataFromResource(hModule, RT_ICON, (IntPtr)id);
+                uint resourceDirSize = 16 * (uint)(namedEntries + idEntries) + 16;
+                byte[] resourceDir = br.ReadBytes((int)resourceDirSize);
 
-                            // Copy GRPICONDIRENTRY to ICONDIRENTRY.
+                var icoDataList = new List<byte[]>();
 
-                            dst.Seek(6 + 16 * i, SeekOrigin.Begin);
+                for (int i = 0; i < namedEntries + idEntries; i++)
+                {
+                    int offset = 16 + 8 * i;
+                    uint nameOrId = BitConverter.ToUInt32(resourceDir, offset);
+                    uint subdirOffset = BitConverter.ToUInt32(resourceDir, offset + 4);
+                    uint subdirRVA = subdirOffset & 0x7FFFFFFF;
+                    int level1 = (int)(subdirOffset >> 31);
 
-                            dst.Write(dir, 6 + 14 * i, 8);  // First 8bytes are identical.
-                            dst.Write(pic.Length);          // ICONDIRENTRY.dwBytesInRes
-                            dst.Write(picOffset);           // ICONDIRENTRY.dwImageOffset
+                    if (level1 != 0 || nameOrId != 3) continue;
 
-                            // Copy a picture.
+                    int dirSize = ReadResourceDirectory(br, sections, subdirRVA, out List<(uint width, uint height, uint bitCount, byte[] imageData)> icons);
+                    if (icons == null || icons.Count == 0) continue;
 
-                            dst.Seek(picOffset, SeekOrigin.Begin);
-                            dst.Write(pic, 0, pic.Length);
+                    int icoSize = 6 + 16 * icons.Count;
+                    foreach (var icon in icons)
+                        icoSize += (int)icon.imageData.Length;
 
-                            picOffset += pic.Length;
-                        }
+                    using var ms = new MemoryStream(icoSize);
+                    using var bw = new BinaryWriter(ms);
+                    bw.Write((ushort)0);
+                    bw.Write((ushort)1);
+                    bw.Write((ushort)icons.Count);
 
-                        tmpData.Add(((MemoryStream)dst.BaseStream).ToArray());
+                    int picOffset = 6 + 16 * icons.Count;
+                    for (int j = 0; j < icons.Count; j++)
+                    {
+                        var icon = icons[j];
+                        bw.Write((byte)icon.width == 0 ? 256 : (byte)icon.width);
+                        bw.Write((byte)icon.height == 0 ? 256 : (byte)icon.height);
+                        bw.Write((byte)0);
+                        bw.Write((byte)0);
+                        bw.Write((ushort)1);
+                        bw.Write((ushort)32);
+                        bw.Write((uint)icon.imageData.Length);
+                        bw.Write((uint)picOffset);
+                        picOffset += (int)icon.imageData.Length;
                     }
 
-                    return true;
-                };
-                NativeMethods.EnumResourceNames(hModule, RT_GROUP_ICON, callback, IntPtr.Zero);
+                    foreach (var icon in icons)
+                        bw.Write(icon.imageData);
 
-                iconData = tmpData.ToArray();
+                    icoDataList.Add(ms.ToArray());
+                }
+
+                return icoDataList.Count > 0 ? icoDataList.ToArray() : null;
             }
-            finally
+            catch
             {
-                if (hModule != IntPtr.Zero)
-                    NativeMethods.FreeLibrary(hModule);
+                return null;
             }
         }
 
-        private byte[] GetDataFromResource(IntPtr hModule, IntPtr type, IntPtr name)
+        private static int ReadResourceDirectory(BinaryReader br, List<(uint VA, uint Size, uint Pointer)> sections, uint rva,
+            out List<(uint width, uint height, uint bitCount, byte[] imageData)> result)
         {
-            // Load the binary data from the specified resource.
+            result = null;
+            long dirPos = br.BaseStream.Position;
 
-            IntPtr hResInfo = NativeMethods.FindResource(hModule, name, type);
-            if (hResInfo == IntPtr.Zero)
-                throw new Win32Exception();
+            foreach (var section in sections)
+            {
+                if (rva >= section.VA && rva < section.VA + section.Size)
+                {
+                    br.BaseStream.Seek((long)(section.Pointer + (rva - section.VA)), SeekOrigin.Begin);
+                    break;
+                }
+            }
 
-            IntPtr hResData = NativeMethods.LoadResource(hModule, hResInfo);
-            if (hResData == IntPtr.Zero)
-                throw new Win32Exception();
+            ushort characteristics = br.ReadUInt16();
+            ushort timeDateStamp = br.ReadUInt16();
+            ushort majorVersion = br.ReadUInt16();
+            ushort minorVersion = br.ReadUInt16();
+            ushort namedEntries = br.ReadUInt16();
+            ushort idEntries = br.ReadUInt16();
 
-            IntPtr pResData = NativeMethods.LockResource(hResData);
-            if (pResData == IntPtr.Zero)
-                throw new Win32Exception();
+            int dirSize = 16 * (namedEntries + idEntries) + 16;
+            byte[] dirData = br.ReadBytes(dirSize);
 
-            uint size = NativeMethods.SizeofResource(hModule, hResInfo);
-            if (size == 0)
-                throw new Win32Exception();
+            result = new List<(uint, uint, uint, byte[])>();
+            for (int i = 0; i < namedEntries + idEntries; i++)
+            {
+                int offset = 16 + 8 * i;
+                uint nameOrId = BitConverter.ToUInt32(dirData, offset);
+                uint subdirOffset = BitConverter.ToUInt32(dirData, offset + 4);
+                uint subdirRVA = subdirOffset & 0x7FFFFFFF;
+                int level2 = (int)(subdirOffset >> 31);
 
-            byte[] buf = new byte[size];
-            Marshal.Copy(pResData, buf, 0, buf.Length);
+                if (level2 != 1) continue;
 
-            return buf;
+                long dataPos = br.BaseStream.Position;
+                int iconDirSize = ReadIconDirectory(br, sections, subdirRVA,
+                    out uint width, out uint height, out uint bitCount, out byte[] imageData);
+                br.BaseStream.Seek(dataPos, SeekOrigin.Begin);
+
+                if (imageData != null && imageData.Length > 0)
+                    result.Add((width, height, bitCount, imageData));
+            }
+
+            br.BaseStream.Seek(dirPos + 16 + 8 * (namedEntries + idEntries), SeekOrigin.Begin);
+            return dirSize;
         }
 
-        private string GetFileName(IntPtr hModule)
+        private static int ReadIconDirectory(BinaryReader br, List<(uint VA, uint Size, uint Pointer)> sections, uint rva,
+            out uint width, out uint height, out uint bitCount, out byte[] imageData)
         {
-            // Alternative to GetModuleFileName() for the module loaded with
-            // LOAD_LIBRARY_AS_DATAFILE option.
+            width = 0; height = 0; bitCount = 0; imageData = null;
+            long dirPos = br.BaseStream.Position;
 
-            // Get the file name in the format like:
-            // "\\Device\\HarddiskVolume2\\Windows\\System32\\shell32.dll"
-
-            string fileName;
+            foreach (var section in sections)
             {
-                var buf = new StringBuilder(MAX_PATH);
-                int len = NativeMethods.GetMappedFileName(
-                    NativeMethods.GetCurrentProcess(), hModule, buf, buf.Capacity);
-                if (len == 0)
-                    throw new Win32Exception();
-
-                fileName = buf.ToString();
+                if (rva >= section.VA && rva < section.VA + section.Size)
+                {
+                    br.BaseStream.Seek((long)(section.Pointer + (rva - section.VA)), SeekOrigin.Begin);
+                    break;
+                }
             }
 
-            // Convert the device name to drive name like:
-            // "C:\\Windows\\System32\\shell32.dll"
+            ushort characteristics = br.ReadUInt16();
+            ushort timeDateStamp = br.ReadUInt16();
+            ushort majorVersion = br.ReadUInt16();
+            ushort minorVersion = br.ReadUInt16();
+            ushort namedEntries = br.ReadUInt16();
+            ushort idEntries = br.ReadUInt16();
 
-            for (char c = 'A'; c <= 'Z'; ++c)
+            int dirSize = 16 * (namedEntries + idEntries) + 16;
+            byte[] dirData = br.ReadBytes(dirSize);
+
+            for (int i = 0; i < namedEntries + idEntries; i++)
             {
-                var drive = c + ":";
-                var buf = new StringBuilder(MAX_PATH);
-                int len = NativeMethods.QueryDosDevice(drive, buf, buf.Capacity);
-                if (len == 0)
-                    continue;
+                int offset = 16 + 8 * i;
+                uint entryRVA = BitConverter.ToUInt32(dirData, offset);
+                uint entrySize = BitConverter.ToUInt32(dirData, offset + 4);
+                int level3 = (int)(entryRVA >> 31);
 
-                var devPath = buf.ToString();
-                if (fileName.StartsWith(devPath))
-                    return (drive + fileName.Substring(devPath.Length));
+                if (level3 != 2) continue;
+
+                uint dataRVA = entryRVA & 0x7FFFFFFF;
+                foreach (var section in sections)
+                {
+                    if (dataRVA >= section.VA && dataRVA < section.VA + section.Size)
+                    {
+                        long dataOffset = (long)(section.Pointer + (dataRVA - section.VA));
+                        br.BaseStream.Seek(dataOffset, SeekOrigin.Begin);
+
+                        width = br.ReadByte();
+                        height = br.ReadByte();
+                        br.ReadByte();
+                        br.ReadByte();
+                        bitCount = br.ReadUInt16();
+                        br.ReadUInt32();
+                        uint actualSize = br.ReadUInt32();
+
+                        imageData = br.ReadBytes((int)actualSize);
+                        break;
+                    }
+                }
             }
 
-            return fileName;
+            br.BaseStream.Seek(dirPos + 16 + 8 * (namedEntries + idEntries), SeekOrigin.Begin);
+            return dirSize;
         }
     }
 }

@@ -19,13 +19,10 @@ public class Program
 
     public static void Main(string[] args)
     {
-        var processModule = Process.GetCurrentProcess().MainModule;
-        if (processModule != null)
-        {
-            var pathToExe = processModule.FileName;
-            var pathToContentRoot = Path.GetDirectoryName(pathToExe);
+        var pathToExe = typeof(Program).Assembly.Location;
+        var pathToContentRoot = Path.GetDirectoryName(pathToExe);
+        if (!string.IsNullOrEmpty(pathToContentRoot))
             Directory.SetCurrentDirectory(pathToContentRoot);
-        }
         CTFAK.CTFAKCore.Init();
         ASCIIArt.SetStatus("Idle");
         Directory.CreateDirectory("Plugins");

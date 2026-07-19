@@ -8,7 +8,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Ionic.Zlib;
-using System.Drawing;
 
 namespace CTFAK.EXE
 {

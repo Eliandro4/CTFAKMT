@@ -1,8 +1,15 @@
-#include <Windows.h>
-#include <stdio.h>
-#include <math.h>
 #include <cstdint>
-#define DllExport  __declspec(dllexport) 
+#include <cstdio>
+#include <cmath>
+
+#if defined(_WIN32)
+#define DllExport __declspec(dllexport)
+#else
+#define DllExport __attribute__((visibility("default")))
+#endif
+
+typedef uint16_t UINT16;
+typedef uint8_t byte;
 int GetPadding(int width, int pointSize, int bytes = 2)
 {
     int pad = bytes - ((width * pointSize) % bytes);

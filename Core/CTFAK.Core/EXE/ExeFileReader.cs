@@ -1,16 +1,18 @@
-﻿using CTFAK.CCN;
+using ImageMagick;
+using TsudaKageyu;
+using CTFAK.CCN;
 using CTFAK.EXE;
 using CTFAK.Memory;
 using CTFAK.Utils;
+
 using System;
 using System.Collections.Generic;
-using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using CTFAK.CCN.Chunks;
-using TsudaKageyu;
-using System.Runtime.CompilerServices;
+
 
 namespace CTFAK.FileReaders
 {
@@ -19,49 +21,55 @@ namespace CTFAK.FileReaders
         public string Name => "Normal EXE";
 
         public GameData game;
-        public Dictionary<int, Bitmap> Icons = new Dictionary<int, Bitmap>();
+        public Dictionary<int, MagickImage> Icons = new Dictionary<int, MagickImage>();
 
 
         public void LoadGame(string gamePath)
         {
             CTFAKCore.currentReader = this;
             Settings.gameType = Settings.GameType.NORMAL;
-            var icoExt = new IconExtractor(gamePath);
-            var icos = IconUtil.Split(icoExt.GetIcon(0));
-            
-            foreach (var icon in icos)
+            try
             {
-                if (IconUtil.GetBitCount(icon) == 8)
-                    Icons.TryAdd(icon.Width + 1, icon.ToBitmap());
-                else
-                    Icons.TryAdd(icon.Width, icon.ToBitmap());
+                var icoExt = new IconExtractor(gamePath);
+                var icon = icoExt.GetIcon(0);
+
+                Icons.TryAdd((int)icon.Width, icon);
+
+                if (!Icons.ContainsKey(16))
+                {
+                    var icon16 = (MagickImage)icon.Clone();
+                    icon16.Resize(16, 16);
+                    Icons.Add(16, icon16);
+                }
+                if (!Icons.ContainsKey(32))
+                {
+                    var icon32 = (MagickImage)icon.Clone();
+                    icon32.Resize(32, 32);
+                    Icons.Add(32, icon32);
+                }
+                if (!Icons.ContainsKey(48))
+                {
+                    var icon48 = (MagickImage)icon.Clone();
+                    icon48.Resize(48, 48);
+                    Icons.Add(48, icon48);
+                }
+                if (!Icons.ContainsKey(128))
+                {
+                    var icon128 = (MagickImage)icon.Clone();
+                    icon128.Resize(128, 128);
+                    Icons.Add(128, icon128);
+                }
+                if (!Icons.ContainsKey(256))
+                {
+                    var icon256 = (MagickImage)icon.Clone();
+                    icon256.Resize(256, 256);
+                    Icons.Add(256, icon256);
+                }
             }
-
-            // 256c 16x16
-            if (!Icons.ContainsKey(17))
-                Icons.Add(17, Icons.Last().Value.ResizeImage(new Size(16, 16)));
-            // 256c 32x32
-            if (!Icons.ContainsKey(33))
-                Icons.Add(33, Icons.Last().Value.ResizeImage(new Size(32, 32)));
-            // 256c 48x48
-            if (!Icons.ContainsKey(49))
-                Icons.Add(49, Icons.Last().Value.ResizeImage(new Size(48, 48)));
-
-            // 32-Bit 16x16
-            if (!Icons.ContainsKey(16))
-                Icons.Add(16, Icons.Last().Value.ResizeImage(new Size(16, 16)));
-            // 32-Bit 32x32
-            if (!Icons.ContainsKey(32))
-                Icons.Add(32, Icons.Last().Value.ResizeImage(new Size(32, 32)));
-            // 32-Bit 48x48
-            if (!Icons.ContainsKey(48))
-                Icons.Add(48, Icons.Last().Value.ResizeImage(new Size(48, 48)));
-            // 32-Bit 128x128
-            if (!Icons.ContainsKey(128))
-                Icons.Add(128, Icons.Last().Value.ResizeImage(new Size(128, 128)));
-            // 32-Bit 256x256
-            if (!Icons.ContainsKey(256))
-                Icons.Add(256, Icons.Last().Value.ResizeImage(new Size(256, 256)));
+            catch (Exception ex)
+            {
+                Logger.Log($"Could not extract icons (likely unsupported on this platform): {ex.Message}");
+            }
 
 
             var reader = new ByteReader(gamePath, System.IO.FileMode.Open);
@@ -79,8 +87,6 @@ namespace CTFAK.FileReaders
                         var flag = reader.ReadInt16();
                         var size = reader.ReadInt32();
                         reader.ReadBytes(size);
-                        //var newChunk = new Chunk(reader);
-                        //var chunkData = newChunk.Read();
                         if (ID == 32639) break;
                     } 
                 }
@@ -170,7 +176,7 @@ namespace CTFAK.FileReaders
             return game;
         }
 
-        public Dictionary<int,Bitmap> getIcons()
+        public Dictionary<int, MagickImage> getIcons()
         {
             return Icons;
         }
@@ -188,4 +194,5 @@ namespace CTFAK.FileReaders
         }
     }
 }
+
 

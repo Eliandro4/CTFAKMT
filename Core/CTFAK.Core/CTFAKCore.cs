@@ -1,8 +1,6 @@
 ﻿using System;
-using System.IO;
 using CTFAK.FileReaders;
 using CTFAK.Utils;
-using Joveler.Compression.ZLib;
 
 namespace CTFAK
 {
@@ -18,17 +16,8 @@ namespace CTFAK
 
             AppDomain.CurrentDomain.UnhandledException += (o, e) =>
             {
-                Console.WriteLine(e.ExceptionObject.GetType());
-                //NativeLib.MessageBox((IntPtr)0, $"{e.Exception.ToString()}", "ERROR", 0);
-
-
-
+                Logger.Log(e.ExceptionObject.ToString(), true, ConsoleColor.Red);
             };
-            ZLibInit.GlobalInit("x64\\zlibwapi.dll");
-
-            String libraryFile = Path.Combine(Path.GetDirectoryName(typeof(CTFAKCore).Assembly.Location), "x64",
-                "CTFAK-Native.dll");
-            NativeLib.LoadLibrary(libraryFile);
         }
     }
 }

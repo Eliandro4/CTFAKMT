@@ -1,10 +1,7 @@
-﻿using System.Drawing.Imaging;
-using System.Drawing;
-using System.Runtime.InteropServices;
+﻿using CTFAK.Utils;
 using System;
-using CTFAK.Core.CCN.Chunks.Banks.ImageBank;
 using System.IO;
-using CTFAK.Utils;
+using ImageMagick;
 
 namespace CTFAK.Core.Utils
 {
@@ -18,6 +15,28 @@ namespace CTFAK.Core.Utils
             if (pad == bytes) return 0;
 
             return (int)Math.Ceiling(pad / (float)pointSize);
+        }
+
+        public static byte[] MagickToRGBA(MagickImage img)
+        {
+            var width = (int)img.Width;
+            var height = (int)img.Height;
+            var colorArray = new byte[width * height * 4];
+            int stride = width * 4;
+            var pixels = img.GetPixels();
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    int newPos = (y * stride) + (x * 4);
+                    var pixel = pixels.GetPixel(x, y);
+                    colorArray[newPos + 0] = pixel.GetChannel(0);
+                    colorArray[newPos + 1] = pixel.GetChannel(1);
+                    colorArray[newPos + 2] = pixel.GetChannel(2);
+                    colorArray[newPos + 3] = pixel.GetChannel(3);
+                }
+            }
+            return colorArray;
         }
 
         public static byte[] Normal24BitMaskedToRGBA(byte[] imageData, int width, int height, bool alpha, Color transparent, bool flipRGB = false)
@@ -46,9 +65,9 @@ namespace CTFAK.Core.Utils
                     colorArray[newPos + 3] = 255;
                     if (!alpha)
                     {
-                        if (colorArray[newPos + 0] == transparent.R && 
+                        if (colorArray[newPos + 0] == transparent.B &&
                             colorArray[newPos + 1] == transparent.G &&
-                            colorArray[newPos + 2] == transparent.B)
+                            colorArray[newPos + 2] == transparent.R)
                             colorArray[newPos + 3] = 0;
                     }
                     position += 3;
@@ -181,9 +200,9 @@ namespace CTFAK.Core.Utils
         }
         public static byte[] Normal8BitToRGBA(byte[] imageData, int width, int height, bool alpha)
         {
-            var newImg = new FusionImage();
-            newImg.FromBitmap((Bitmap)Bitmap.FromStream(new MemoryStream(imageData)));
-            return newImg.imageData;
+            using var stream = new MemoryStream(imageData);
+            using var img = new MagickImage(stream);
+            return MagickToRGBA(img);
         }
         public static byte[] AndroidMode0ToRGBA(byte[] imageData, int width, int height, bool alpha)
         {
@@ -228,8 +247,6 @@ namespace CTFAK.Core.Utils
                     g = (byte)(g << 4);
                     b = (byte)(b << 4);
                     a = (byte)(a << 4);
-                    //r done
-                    //g partially done
 
                     colorArray[y * stride + x * 4 + 2] = r;
                     colorArray[y * stride + x * 4 + 1] = g;
@@ -265,8 +282,6 @@ namespace CTFAK.Core.Utils
                     g = (byte)(g << 3);
                     b = (byte)(b << 3);
                     a = (byte)(a << 4);
-                    //r done
-                    //g partially done
 
                     colorArray[y * stride + x * 4 + 2] = r;
                     colorArray[y * stride + x * 4 + 1] = g;
@@ -322,8 +337,6 @@ namespace CTFAK.Core.Utils
                     r = (byte)(r << 3);
                     g = (byte)(g << 2);
                     b = (byte)(b << 3);
-                    //r done
-                    //g partially done
 
                     colorArray[y * stride + x * 4 + 2] = r;
                     colorArray[y * stride + x * 4 + 1] = g;
@@ -339,13 +352,12 @@ namespace CTFAK.Core.Utils
         }
         public static byte[] AndroidMode5ToRGBA(byte[] imageData, int width, int height, bool alpha)
         {
-            var img = new FusionImage();
-            img.FromBitmap((Bitmap)Bitmap.FromStream(new MemoryStream(imageData)));
-            return Normal24BitMaskedToRGBA(img.imageData, width, height, true, Color.Black);
+            using var stream = new MemoryStream(imageData);
+            using var img = new MagickImage(stream);
+            return MagickToRGBA(img);
         }
         public static byte[] TwoFivePlusToRGBA(byte[] imageData, int width, int height, bool alpha, Color transparent, bool RGBA, bool flipRGB = false)
         {
-            //Logger.Log("TwoFivePlusToRGBA, Image Data Size: " + imageData.Length + ", Size: " + width + "x" + height + ", Alpha: " + alpha + ", Transparent Color: " + transparent + ", RGBA: " + RGBA + ", Flip RGB: " + flipRGB);
             byte[] colorArray = new byte[width * height * 4];
             int stride = width * 4;
             int pad = GetPadding(width, 4);
@@ -406,7 +418,6 @@ namespace CTFAK.Core.Utils
         public static byte[] RGBAToRGBMasked(byte[] imageData, int width, int height, bool alpha, bool RGBA = false) => RGBAToRGBMasked(imageData, width, height, alpha, Color.Black, RGBA);
         public static byte[] RGBAToRGBMasked(byte[] imageData, int width, int height, bool alpha, Color transparent, bool RGBA = false)
         {
-            //Logger.Log("RGBAToRGBMasked, Image Data Size: " + imageData.Length + ", Size: " + width + "x" + height + ", Alpha: " + alpha + ", Transparent Color: " + transparent + ", RGBA: " + RGBA);
             byte[] colorArray = new byte[width * height * 8];
             int stride = width * 4;
             int pad = GetPadding(width, 3);

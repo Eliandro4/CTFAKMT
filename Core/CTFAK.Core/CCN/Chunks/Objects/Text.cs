@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Drawing;
 using System.Xml.Schema;
 using CTFAK.Memory;
 using CTFAK.Utils;

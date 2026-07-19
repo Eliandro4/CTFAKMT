@@ -20,6 +20,8 @@ namespace CTFAK.Core.CCN.Chunks.Banks.SoundBank
         public List<SoundItem> Items = new List<SoundItem>();
         public bool IsCompressed = true;
 
+		public string bankHash = "";
+
         public override void Read(ByteReader reader)
         {
             Items = new List<SoundItem>();
@@ -34,6 +36,7 @@ namespace CTFAK.Core.CCN.Chunks.Banks.SoundBank
                 item.IsCompressed = IsCompressed;
                 item.Read(reader);
                 OnSoundLoaded?.Invoke(i, NumOfItems);
+				bankHash += item.Checksum;
 
                 Items.Add(item);
             }

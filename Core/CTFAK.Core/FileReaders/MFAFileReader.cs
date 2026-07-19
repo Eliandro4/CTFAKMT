@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Drawing;
 using System.Runtime.CompilerServices;
 using CTFAK.CCN;
 using CTFAK.Core.MFA;
@@ -7,6 +6,7 @@ using CTFAK.FileReaders;
 using CTFAK.Memory;
 using CTFAK.MFA;
 using CTFAK.Utils;
+using ImageMagick;
 
 namespace CTFAK.EXE
 {
@@ -35,9 +35,9 @@ namespace CTFAK.EXE
             game = MFA2Pame.ConvertMFA2Pame(mfa);
         }
 
-        public Dictionary<int, Bitmap> getIcons()
+        public Dictionary<int, MagickImage> getIcons()
         {
-            return new Dictionary<int, Bitmap>();
+            return new Dictionary<int, MagickImage>();
         }
 
         public void PatchMethods()

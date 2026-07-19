@@ -1,28 +1,41 @@
 ﻿using System;
+using System.IO;
+using System.IO.Compression;
 using System.Runtime.InteropServices;
 
 namespace CTFAK.Utils
 {
     public static class NativeLib
     {
-        private const string DllPath = "CTFAK-Native.dll";
+        public static bool IsWindows => RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
 
-        [DllImport("Kernel32.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi, SetLastError = false)]
-        public static extern IntPtr LoadLibrary([MarshalAs(UnmanagedType.LPStr)] string lpFileName);
+        public static int decompressOld(IntPtr source, int source_size, IntPtr output, int output_size)
+        {
+            var input = new byte[source_size];
+            Marshal.Copy(source, input, 0, source_size);
+            var outputBuffer = new byte[output_size];
+            int actualSize;
 
-        [DllImport("User32.dll", CharSet = CharSet.Unicode)]
-        public static extern int MessageBox(IntPtr h, string m, string c, int type);
+            using (var ms = new MemoryStream(input))
+            using (var deflate = new DeflateStream(ms, CompressionMode.Decompress))
+            {
+                actualSize = deflate.Read(outputBuffer, 0, output_size);
+            }
 
-        [DllImport(DllPath, EntryPoint = "decompressOld", CharSet = CharSet.Auto)]
-        public static extern int decompressOld(IntPtr source, int source_size, IntPtr output, int output_size);
+            Marshal.Copy(outputBuffer, 0, output, actualSize);
+            return actualSize;
+        }
 
-        [DllImport(DllPath, EntryPoint = "TranslateToRGBMasked", CharSet = CharSet.Auto)]
-        public static extern void TranslateToRGBMasked(IntPtr result, int width, int height, int alpha, int size, IntPtr imageData, int tranparent, int colorMode);
+        public static void TranslateToRGBMasked(IntPtr result, int width, int height, int alpha, int size, IntPtr imageData, int tranparent, int colorMode)
+        {
+        }
 
-        [DllImport(DllPath, EntryPoint = "TranslateToRGBA", CharSet = CharSet.Auto)]
-        public static extern void TranslateToRGBA(IntPtr result, int width, int height, int alpha, int size, IntPtr imageData, int tranparent, int colorMode);
+        public static void TranslateToRGBA(IntPtr result, int width, int height, int alpha, int size, IntPtr imageData, int tranparent, int colorMode)
+        {
+        }
 
-        [DllImport(DllPath, EntryPoint = "TranslateToBGRA", CharSet = CharSet.Auto)]
-        public static extern void TranslateToBGRA(IntPtr result, int width, int height, int alpha, int size, IntPtr imageData, int tranparent, int colorMode);
+        public static void TranslateToBGRA(IntPtr result, int width, int height, int alpha, int size, IntPtr imageData, int tranparent, int colorMode)
+        {
+        }
     }
 }

@@ -116,12 +116,12 @@ namespace CTFAK.CCN.Chunks.Objects
             else if (DisplayType == 2 || DisplayType == 3 || DisplayType == 5)
             {
                 writer.WriteInt16(0);
-                writer.WriteColor(System.Drawing.Color.FromArgb(0, 255, 255, 255));
+                writer.WriteColor(Color.FromArgb(0, 255, 255, 255));
                 writer.WriteInt16(1);
                 writer.WriteInt16(1);
                 writer.WriteInt16(2);
                 writer.WriteInt16(0);
-                writer.WriteColor(System.Drawing.Color.FromArgb(0, 255, 255, 255));
+                writer.WriteColor(Color.FromArgb(0, 255, 255, 255));
                 writer.WriteInt16(0);
             }
         }

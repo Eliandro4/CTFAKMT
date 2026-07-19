@@ -8,7 +8,6 @@ using CTFAK.MFA;
 using CTFAK.MMFParser.EXE.Loaders;
 using System.Collections.Generic;
 using System.Security.Cryptography.X509Certificates;
-using System.Drawing;
 using CTFAK.Memory;
 using System.Security.Cryptography;
 using CTFAK.Utils;

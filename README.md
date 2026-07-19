@@ -1,3 +1,6 @@
+# CTFAKMT
+
+This is a fork of [CTFAK 2.0](https://github.com/CTFAK/CTFAK2.0) by Kostya and Yunivers.
 > [!CAUTION]
 > CTFAK 2.0 is no longer being worked on and thus has been archived.
 
@@ -112,6 +115,8 @@ All arguments should start with `-` and should be followed up by data wrapped in
 | [RED_EYE](https://github.com/REDxEYE) | Developer of the decryption library. |
 | [LAK132](https://github.com/LAK132) | Coding help for the Image Bank rewrite. |
 | [Liz](https://github.com/lily-snow-9) | Coding help for Child Events, Sub-App port. |
+
+Some improvements ported from [CTFAK-Nuclear](https://github.com/nuclearrt/CTFAK-Nuclear) (a fork used for [NuclearRT](https://github.com/nuclearrt/nuclearrt)), authored by [shishkabob27](https://github.com/shishkabob27):
 
 CTFAK 2.0 is licensed under [AGPL-3.0](https://github.com/CTFAK/CTFAK2.0/blob/master/LICENSE).
 

@@ -1,8 +1,8 @@
 ﻿using CTFAK.CCN.Chunks;
 using CTFAK.Core.CCN.Chunks.Banks.ImageBank;
 using CTFAK.Memory;
+using CTFAK.Utils;
 using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;

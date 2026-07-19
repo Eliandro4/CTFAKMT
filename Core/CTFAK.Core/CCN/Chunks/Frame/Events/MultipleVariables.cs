@@ -1,4 +1,4 @@
-﻿using System.Drawing;
+
 using CTFAK.CCN.Chunks;
 using CTFAK.Memory;
 using CTFAK.Utils;

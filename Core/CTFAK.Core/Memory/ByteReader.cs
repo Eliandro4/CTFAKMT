@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Drawing;
 using System.IO;
 using System.Text;
 using CTFAK.Utils;
@@ -111,7 +110,16 @@ namespace CTFAK.Memory
             var b = ReadByte();
             var a = ReadByte();
 
-            return Color.FromArgb(a, r, g, b);
+            return new Color(a, r, g, b);
+        }
+
+        public Color ReadABGR()
+        {
+            var b = ReadByte();
+            var g = ReadByte();
+            var r = ReadByte();
+            var a = ReadByte();
+            return new Color(a, r, g, b);
         }
 
         public override byte[] ReadBytes(int count = -1)

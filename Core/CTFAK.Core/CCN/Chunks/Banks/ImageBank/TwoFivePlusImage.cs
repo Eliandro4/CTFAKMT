@@ -2,7 +2,6 @@
 using CTFAK.Utils;
 using K4os.Compression.LZ4;
 using System;
-using System.Drawing;
 using System.IO;
 using System.Threading.Tasks;
 

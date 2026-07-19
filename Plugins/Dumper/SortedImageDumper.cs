@@ -1,3 +1,4 @@
+using ImageMagick;
 ﻿using CTFAK;
 using CTFAK.CCN;
 using CTFAK.CCN.Chunks.Frame;
@@ -8,7 +9,6 @@ using CTFAK.Tools;
 using CTFAK.Utils;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
 using System.Runtime.Intrinsics.X86;
 using System.Text.RegularExpressions;
@@ -83,8 +83,8 @@ namespace Dumper
                                     {
                                         if (!LostandFound.Contains(bg.Image))
                                             LostandFound.Add(bg.Image);
-                                        images[bg.Image].bitmap.Save($"{objectFolder}{oi.name}.png");
-                                        images[bg.Image].bitmap.Save($"{frameFolder}[UNSORTED]\\{oi.name}.png");
+                                        images[bg.Image].bitmap.Write($"{objectFolder}{oi.name}.png");
+                                        images[bg.Image].bitmap.Write($"{frameFolder}[UNSORTED]\\{oi.name}.png");
                                         retry = 5;
                                     }
                                     catch
@@ -107,8 +107,8 @@ namespace Dumper
                                     {
                                         if (!LostandFound.Contains(qbg.Image))
                                             LostandFound.Add(qbg.Image);
-                                        images[qbg.Image].bitmap.Save($"{objectFolder}{oi.name}.png");
-                                        images[qbg.Image].bitmap.Save($"{frameFolder}[UNSORTED]\\{oi.name}.png");
+                                        images[qbg.Image].bitmap.Write($"{objectFolder}{oi.name}.png");
+                                        images[qbg.Image].bitmap.Write($"{frameFolder}[UNSORTED]\\{oi.name}.png");
                                         retry = 5;
                                     }
                                     catch
@@ -166,8 +166,8 @@ namespace Dumper
                                                     {
                                                         if (!LostandFound.Contains(frm))
                                                             LostandFound.Add(frm);
-                                                        images[frm].bitmap.Save($"{directionFolder}_{i}.png");
-                                                        images[frm].bitmap.Save($"{frameFolder}[UNSORTED]\\{oi.name}_{anim.Key}-{dir.Key}_{i}.png");
+                                                        images[frm].bitmap.Write($"{directionFolder}_{i}.png");
+                                                        images[frm].bitmap.Write($"{frameFolder}[UNSORTED]\\{oi.name}_{anim.Key}-{dir.Key}_{i}.png");
                                                         retry = 5;
                                                     }
                                                     catch
@@ -191,7 +191,7 @@ namespace Dumper
                                     {
                                         foreach (var cntrFrm in counter.Frames)
                                         {
-                                            Bitmap bmp = images[cntrFrm].bitmap;
+                                            MagickImage bmp = images[cntrFrm].bitmap;
 
                                             Directory.CreateDirectory(objectFolder);
                                             while (retry < 5)
@@ -200,8 +200,8 @@ namespace Dumper
                                                 {
                                                     if (!LostandFound.Contains(cntrFrm))
                                                         LostandFound.Add(cntrFrm);
-                                                    bmp.Save($"{objectFolder}{cntrFrm}.png");
-                                                    bmp.Save($"{frameFolder}[UNSORTED]\\{oi.name}_{cntrFrm}.png");
+                                                    bmp.Write($"{objectFolder}{cntrFrm}.png");
+                                                    bmp.Write($"{frameFolder}[UNSORTED]\\{oi.name}_{cntrFrm}.png");
                                                     retry = 5;
                                                 }
                                                 catch
@@ -296,7 +296,7 @@ namespace Dumper
                     savedvar = img.Key;
                     if (LostandFound.Contains(savedvar)) continue;
                     Directory.CreateDirectory(lafFolder);
-                    img.Value.bitmap.Save($"{lafFolder}{savedvar}.png");
+                    img.Value.bitmap.Write($"{lafFolder}{savedvar}.png");
                     LostandFound.Add(savedvar);
 
                     Console.WriteLine($"Lost and Found | {img.Key}");

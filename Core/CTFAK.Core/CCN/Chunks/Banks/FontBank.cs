@@ -3,7 +3,6 @@ using CTFAK.MFA;
 using CTFAK.Utils;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
@@ -17,6 +16,8 @@ namespace CTFAK.CCN.Chunks.Banks
         public bool Compressed;
         public bool Debug;
         public List<FontItem> Items=new List<FontItem>();
+
+        public string bankHash = "";
 
 
 
@@ -38,6 +39,7 @@ namespace CTFAK.CCN.Chunks.Banks
                 item.Read(reader);
                 item.Handle += (uint)offset;
                 Items.Add(item);
+				bankHash += item.Checksum;
             }
 
 

@@ -9,13 +9,13 @@ using CTFAK.MFA.MFAObjectLoaders;
 using CTFAK.Utils;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Ionic.Zlib;
 using Microsoft.VisualBasic;
+using ImageMagick;
 using Action = CTFAK.CCN.Chunks.Frame.Action;
 using Constants = CTFAK.CCN.Constants;
 using System.Text.RegularExpressions;
@@ -156,7 +156,7 @@ namespace CTFAK.Tools
             var imageNull = new FusionImage();
             imageNull.Handle = 14;
             imageNull.Transparent = Color.Brown;
-            imageNull.FromBitmap((Bitmap)Resources.EmptyIcon);
+            imageNull.FromBitmap(new MagickImage(Resources.EmptyIcon));
             mfa.Icons.Items.Add(14, imageNull);
             // game.Images.Images.Clear();
 
@@ -642,7 +642,7 @@ namespace CTFAK.Tools
                 newItem.Flags = item.Flags;
                 int type = 2;
                 bool noicon = false;
-                Bitmap iconBmp = null;
+                MagickImage iconBmp = null;
                 if (newItem.ObjectType >= 32)
                 {
                     CTFAK.CCN.Chunks.Extension ext = null;
@@ -654,97 +654,97 @@ namespace CTFAK.Tools
                     switch (ext.Name)
                     {
                         case "KcBoxA":
-                            iconBmp = Resources.ActiveSystemBox;
+                            iconBmp = new MagickImage(Resources.ActiveSystemBox);
                             break;
                         case "kcpop":
-                            iconBmp = Resources.PopupMessageobject2;
+                            iconBmp = new MagickImage(Resources.PopupMessageobject2);
                             break;
                         case "EasyScrollbar":
-                            iconBmp = Resources.EasyScrollbar;
+                            iconBmp = new MagickImage(Resources.EasyScrollbar);
                             break;
                         case "InternalList":
-                            iconBmp = Resources.InternalListObject;
+                            iconBmp = new MagickImage(Resources.InternalListObject);
                             break;
                         case "PopupMenu":
-                            iconBmp = Resources.PopupMenu;
+                            iconBmp = new MagickImage(Resources.PopupMenu);
                             break;
                         case "RunInConsole":
-                            iconBmp = Resources.ExecuteInConsole;
+                            iconBmp = new MagickImage(Resources.ExecuteInConsole);
                             break;
                         case "KcBoxB":
-                            iconBmp = Resources.ComboBox;
+                            iconBmp = new MagickImage(Resources.ComboBox);
                             break;
                         case "TreeControl":
-                            iconBmp = Resources.TreeControl;
+                            iconBmp = new MagickImage(Resources.TreeControl);
                             break;
                         case "kcinput":
-                            iconBmp = Resources.InputObject;
+                            iconBmp = new MagickImage(Resources.InputObject);
                             break;
                         case "kcedit":
-                            iconBmp = Resources.EditBoxSel;
+                            iconBmp = new MagickImage(Resources.EditBoxSel);
                             break;
                         case "kcriched":
-                            iconBmp = Resources.EEEditbox;
+                            iconBmp = new MagickImage(Resources.EEEditbox);
                             break;
                         case "fontembed":
-                            iconBmp = Resources.FontEmbedObject;
+                            iconBmp = new MagickImage(Resources.FontEmbedObject);
                             break;
                         case "kcfile":
-                            iconBmp = Resources.File;
+                            iconBmp = new MagickImage(Resources.File);
                             break;
                         case "fcFolder":
-                            iconBmp = Resources.FileFolderObject;
+                            iconBmp = new MagickImage(Resources.FileFolderObject);
                             break;
                         case "FileReadWrite":
                             //by default
                             break;
                         case "kcpica":
-                            iconBmp = Resources.Active_Picture;
+                            iconBmp = new MagickImage(Resources.Active_Picture);
                             break;
                         case "kclist":
-                            iconBmp = Resources.List;
+                            iconBmp = new MagickImage(Resources.List);
                             break;
                         case "kccombo":
-                            iconBmp = Resources.ComboBox;
+                            iconBmp = new MagickImage(Resources.ComboBox);
                             break;
                         case "EditBoxSel":
-                            iconBmp = Resources.EditBoxSel;
+                            iconBmp = new MagickImage(Resources.EditBoxSel);
                             break;
                         case "JSON_Object":
                             //by default
                             break;
                         case "CalcRect":
-                            iconBmp = Resources.CalcRect;
+                            iconBmp = new MagickImage(Resources.CalcRect);
                             break;
                         case "IIF":
-                            iconBmp = Resources.IIF;
+                            iconBmp = new MagickImage(Resources.IIF);
                             break;
                         case "StringReplace":
-                            iconBmp = Resources.StringReplace;
+                            iconBmp = new MagickImage(Resources.StringReplace);
                             break;
                         case "ObjResize":
-                            iconBmp = Resources.ObjResize;
+                            iconBmp = new MagickImage(Resources.ObjResize);
                             break;
                         case "xlua":
-                            iconBmp = Resources.XLua;
+                            iconBmp = new MagickImage(Resources.XLua);
                             break;
                         case "kcini":
-                            iconBmp = Resources.Ini;
+                            iconBmp = new MagickImage(Resources.Ini);
                             break;
                         case "INI++15":
-                            iconBmp = Resources.IniPLUS;
+                            iconBmp = new MagickImage(Resources.IniPLUS);
                             break;
                         case "kcwctrl":
-                            iconBmp = Resources.WindowControl;
+                            iconBmp = new MagickImage(Resources.WindowControl);
                             break;
                         case "KcButton":
-                            iconBmp = Resources.Button;
+                            iconBmp = new MagickImage(Resources.Button);
                             break;
                         case "Perspective":
-                            iconBmp = Resources.Perspective;
+                            iconBmp = new MagickImage(Resources.Perspective);
                             break;
                         case "kcclock":
-                            iconBmp = Resources.DateAndTime;
+                            iconBmp = new MagickImage(Resources.DateAndTime);
                             break;
                         default:
                             noicon = true;
@@ -760,7 +760,7 @@ namespace CTFAK.Tools
                         case 0: //Quick Backdrop
                             try
                             {
-                                Bitmap bmp = game.Images.Items[((Quickbackdrop)item.properties).Image].bitmap;
+                                MagickImage bmp = game.Images.Items[((Quickbackdrop)item.properties).Image].bitmap;
                                 if (bmp.Width > bmp.Height)
                                     iconBmp = bmp.ResizeImage(new Size(32, (int)Math.Round((float)bmp.Height / bmp.Width * 32.0)));
                                 else
@@ -768,13 +768,13 @@ namespace CTFAK.Tools
                             }
                             catch
                             {
-                                iconBmp = Resources.Backdrop;
+                                iconBmp = new MagickImage(Resources.Backdrop);
                             }
                             break;
                         case 1: //Backdrop
                             try
                             {
-                                Bitmap bmp = game.Images.Items[((Backdrop)item.properties).Image].bitmap;
+                                MagickImage bmp = game.Images.Items[((Backdrop)item.properties).Image].bitmap;
                                 if (bmp.Width > bmp.Height)
                                     iconBmp = bmp.ResizeImage(new Size(32, (int)Math.Round((float)bmp.Height / bmp.Width * 32.0)));
                                 else
@@ -782,13 +782,13 @@ namespace CTFAK.Tools
                             }
                             catch
                             {
-                                iconBmp = Resources.Backdrop;
+                                iconBmp = new MagickImage(Resources.Backdrop);
                             }
                             break;
                         case 2: //Active
                             try
                             {
-                                Bitmap bmp = game.Images.Items[((ObjectCommon)item.properties).Animations.AnimationDict.First().Value.DirectionDict.First().Value.Frames.First()].bitmap;
+                                MagickImage bmp = game.Images.Items[((ObjectCommon)item.properties).Animations.AnimationDict.First().Value.DirectionDict.First().Value.Frames.First()].bitmap;
                                 if (bmp.Width > bmp.Height)
                                     iconBmp = bmp.ResizeImage(new Size(32, (int)Math.Round((float)bmp.Height / bmp.Width * 32.0)));
                                 else
@@ -796,25 +796,25 @@ namespace CTFAK.Tools
                             }
                             catch
                             {
-                                iconBmp = Resources.Active;
+                                iconBmp = new MagickImage(Resources.Active);
                             }
                             break;
                         case 3: //String
-                            iconBmp = Resources.String;
+                            iconBmp = new MagickImage(Resources.String);
                             break;
                         case 4: //Question and Answer
-                            iconBmp = Resources.QandA;
+                            iconBmp = new MagickImage(Resources.QandA);
                             break;
                         case 5: //Score
-                            iconBmp = Resources.Score;
+                            iconBmp = new MagickImage(Resources.Score);
                             break;
                         case 6: //Lives
-                            iconBmp = Resources.Lives;
+                            iconBmp = new MagickImage(Resources.Lives);
                             break;
                         case 7: //Counter
                             try
                             {
-                                Bitmap bmp = game.Images.Items[((ObjectCommon)item.properties).Counters.Frames.First()].bitmap;
+                                MagickImage bmp = game.Images.Items[((ObjectCommon)item.properties).Counters.Frames.First()].bitmap;
                                 if (bmp.Width > bmp.Height)
                                     iconBmp = bmp.ResizeImage(new Size(32, (int)Math.Round((float)bmp.Height / bmp.Width * 32.0)));
                                 else
@@ -822,14 +822,14 @@ namespace CTFAK.Tools
                             }
                             catch
                             {
-                                iconBmp = Resources.Counter;
+                                iconBmp = new MagickImage(Resources.Counter);
                             }
                             break;
                         case 8: //Formatted Text
-                            iconBmp = Resources.Formatted_Text;
+                            iconBmp = new MagickImage(Resources.Formatted_Text);
                             break;
                         case 9: //Sub-Application
-                            iconBmp = Resources.SubApp;
+                            iconBmp = new MagickImage(Resources.SubApp);
                             break;
                         default:
                             noicon = true;
@@ -840,7 +840,7 @@ namespace CTFAK.Tools
                 if (CTFAKCore.parameters.Contains("-noicons"))
                 {
                     noicon = false;
-                    iconBmp = Resources.Active;
+                    iconBmp = new MagickImage(Resources.Active);
                 }
 
                 if (!noicon)

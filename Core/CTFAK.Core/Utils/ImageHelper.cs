@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Drawing;
-using System.Drawing.Imaging;
 using System.IO;
-using System.Runtime.InteropServices;
+using ImageMagick;
 
 namespace CTFAK.Utils
 {
@@ -20,7 +18,7 @@ namespace CTFAK.Utils
             return (int)Math.Ceiling(pad / (float)pointSize);
         }
 
-        public static Bitmap DumpImage(byte[] imageData, int width, int height, uint mode)
+        public static MagickImage DumpImage(byte[] imageData, int width, int height, uint mode)
         {
             byte[] colorArray = new byte[width * height * 4];
             int stride = width * 4;
@@ -61,9 +59,6 @@ namespace CTFAK.Utils
                         g = (byte)(g << 4);
                         b = (byte)(b << 4);
                         a = (byte)(a << 4);
-                        //r done
-                        //g partially done
-
 
                         colorArray[y * stride + x * 4 + 2] = r;
                         colorArray[y * stride + x * 4 + 1] = g;
@@ -94,9 +89,6 @@ namespace CTFAK.Utils
                         g = (byte)(g << 3);
                         b = (byte)(b << 3);
                         a = (byte)(a << 4);
-                        //r done
-                        //g partially done
-
 
                         colorArray[y * stride + x * 4 + 2] = r;
                         colorArray[y * stride + x * 4 + 1] = g;
@@ -125,19 +117,6 @@ namespace CTFAK.Utils
                         position += 3;
                     }
                     position += pad;
-                    
-                    /*if (height * width * 3 != imageData.Length && height * width * 3 + height * 3 != imageData.Length && height * width * 3 + height != imageData.Length)
-                    {
-                        position += 2;
-                    }
-                    else if (height * width * 3 + height * 3 == imageData.Length)
-                    {
-                        position += 3;
-                    }
-                    else if (height * width * 3 + height == imageData.Length)
-                    {
-                        position++;
-                    }*/
                 }
             }
             else if (mode == 4)
@@ -156,9 +135,6 @@ namespace CTFAK.Utils
                         r = (byte)(r << 3);
                         g = (byte)(g << 2);
                         b = (byte)(b << 3);
-                        //r done
-                        //g partially done
-
 
                         colorArray[y * stride + x * 4 + 2] = r;
                         colorArray[y * stride + x * 4 + 1] = g;
@@ -172,22 +148,25 @@ namespace CTFAK.Utils
                 }
             }
             else if (mode == 5)
-                return (Bitmap)Bitmap.FromStream(new MemoryStream(imageData));
+            {
+                using var stream = new MemoryStream(imageData);
+                using var magick = new MagickImage(stream);
+                magick.Resize((uint)width, (uint)height);
+                return magick;
+            }
             else Console.WriteLine("BROKEN COLOR MODE " + mode);
 
-
-            var bmp = new Bitmap(width, height, PixelFormat.Format32bppArgb);
-
-            BitmapData bmpData = bmp.LockBits(new Rectangle(0, 0,
-                                 bmp.Width,
-                                 bmp.Height),
-                                 ImageLockMode.WriteOnly,
-                                 bmp.PixelFormat);
-
-            var pNative = bmpData.Scan0;
-            Marshal.Copy(colorArray, 0, pNative, colorArray.Length);
-
-            bmp.UnlockBits(bmpData);
+            var bmp = new MagickImage(MagickColors.Transparent, (uint)width, (uint)height);
+            bmp.Format = MagickFormat.Rgba;
+            var pixels = bmp.GetPixels();
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    int idx = (y * stride) + (x * 4);
+                    pixels.SetPixel(x, y, new byte[] { colorArray[idx + 2], colorArray[idx + 1], colorArray[idx + 0], colorArray[idx + 3] });
+                }
+            }
             return bmp;
         }
     }

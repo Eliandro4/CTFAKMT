@@ -3,16 +3,16 @@ using CTFAK.Memory;
 using CTFAK.Utils;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
+using ImageMagick;
 
 namespace CTFAK.Core.CCN.Chunks
 {
     public class AppIcon
     {
-        public static Bitmap Icon;
+        public static MagickImage Icon;
         public static List<Color> Palette;
 
-        public static Bitmap ReadIcon(ByteReader reader)
+        public static MagickImage ReadIcon(ByteReader reader)
         {
             reader.Seek(reader.PeekInt32());
             Palette = new();
@@ -26,27 +26,32 @@ namespace CTFAK.Core.CCN.Chunks
                 Palette.Add(newColor);
             }
 
-            Icon = new Bitmap(16, 16);
+            Icon = new MagickImage(MagickColors.Transparent, (uint)16, (uint)16);
+            Icon.Format = MagickFormat.Rgba;
+            var pixels = Icon.GetPixels();
 
-            for (int h = 0; h < Icon.Height; h++)
-                for (int w = 0; w < Icon.Width; w++)
-                    Icon.SetPixel(w, Icon.Width - 1 - h, Palette[reader.ReadByte()]);
+            for (int h = 0; h < 16; h++)
+                for (int w = 0; w < 16; w++)
+                {
+                    var paletteColor = Palette[reader.ReadByte()];
+                    pixels.SetPixel(w, 15 - h, new byte[] { paletteColor.R, paletteColor.G, paletteColor.B, 255 });
+                }
 
-            var BitmapSize = Icon.Width * Icon.Height;
-            for (int y = 0; y < Icon.Height; ++y)
-                for (int x = 0; x < Icon.Width; x += 8)
+            var BitmapSize = 16 * 16;
+            for (int y = 0; y < 16; ++y)
+                for (int x = 0; x < 16; x += 8)
                 {
                     byte Mask = reader.ReadByte();
                     for (int i = 0; i < 8; ++i)
                         if ((1 & (Mask >> (7 - i))) != 0)
                         {
-                            Color get = Icon.GetPixel(x + i, y);
-                            Icon.SetPixel(x + i, y, Color.FromArgb(0, get.R, get.G, get.B));
+                            var pixel = pixels.GetPixel(x + i, y);
+                            pixels.SetPixel(x + i, y, new byte[] { pixel.GetChannel(0), pixel.GetChannel(1), pixel.GetChannel(2), 0 });
                         }
                         else
                         {
-                            Color get = Icon.GetPixel(x + i, y);
-                            Icon.SetPixel(x + i, y, Color.FromArgb(255, get.R, get.G, get.B));
+                            var pixel = pixels.GetPixel(x + i, y);
+                            pixels.SetPixel(x + i, y, new byte[] { pixel.GetChannel(0), pixel.GetChannel(1), pixel.GetChannel(2), 255 });
                         }
                 }
             return Icon;
