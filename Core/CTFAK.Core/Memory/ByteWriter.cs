@@ -109,14 +109,13 @@ namespace CTFAK.Memory
 
         public void WriteWriter(ByteWriter toWrite)
         {
-            byte[] data = ((MemoryStream)toWrite.BaseStream).GetBuffer();
-            Array.Resize<byte>(ref data, (int)toWrite.Tell());
+            byte[] data = ((MemoryStream)toWrite.BaseStream).ToArray();
             this.WriteBytes(data);
         }
 
         public byte[] ToArray()
         {
-            return this.GetBuffer();
+            return ((MemoryStream)BaseStream).ToArray();
         }
     }
 }

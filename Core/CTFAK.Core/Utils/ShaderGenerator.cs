@@ -11,9 +11,9 @@ namespace CTFAK.Core.Utils
         {
             Logger.Log("Translating shader: " + shader.Name);
             var shaderName = Path.GetFileNameWithoutExtension(shader.Name);
-            var fxPath = $"Dumps\\Shaders\\{shaderName}\\{shader.Name}";
-            var xmlPath = $"Dumps\\Shaders\\{shaderName}\\{shaderName}.xml";
-            Directory.CreateDirectory($"Dumps\\Shaders\\{shaderName}");
+            var fxPath = $"Dumps/Shaders/{shaderName}/{shader.Name}";
+            var xmlPath = $"Dumps/Shaders/{shaderName}/{shaderName}.xml";
+            Directory.CreateDirectory($"Dumps/Shaders/{shaderName}");
 
 
 

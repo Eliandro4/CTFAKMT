@@ -210,7 +210,7 @@ namespace CTFAK.EXE
             // LOAD_LIBRARY_AS_DATAFILE option.
 
             // Get the file name in the format like:
-            // "\\Device\\HarddiskVolume2\\Windows\\System32\\shell32.dll"
+            // "/Device/HarddiskVolume2/Windows/System32/shell32.dll"
 
             string fileName;
             {
@@ -224,7 +224,7 @@ namespace CTFAK.EXE
             }
 
             // Convert the device name to drive name like:
-            // "C:\\Windows\\System32\\shell32.dll"
+            // "C:/Windows/System32/shell32.dll"
 
             for (char c = 'A'; c <= 'Z'; ++c)
             {

@@ -46,7 +46,7 @@ namespace Dumper
             var outPath = reader.getGameData().name ?? "Unknown Game";
             Regex rgx = new Regex("[^a-zA-Z0-9 -]");
             outPath = rgx.Replace(outPath, "").Trim(' ');
-            Directory.CreateDirectory($"Dumps\\{outPath}\\Images");
+            Directory.CreateDirectory($"Dumps/{outPath}/Images");
             Task[] tasks = new Task[images.Count];
             int i = 0;
             foreach (var image in images.Values)
@@ -54,7 +54,7 @@ namespace Dumper
                 var newTask = new Task(() =>
                 {
                     var bmp = image.bitmap;
-                    bmp.Write($"Dumps\\{outPath}\\Images\\{image.Handle}.png");
+                    bmp.Write($"Dumps/{outPath}/Images/{image.Handle}.png");
                 });
                 tasks[i] = newTask;
                 newTask.Start();
@@ -118,11 +118,11 @@ namespace Dumper
             var outPath = reader.getGameData().name ?? "Unknown Game";
             Regex rgx = new Regex("[^a-zA-Z0-9 -]");
             outPath = rgx.Replace(outPath, "").Trim(' ');
-            Directory.CreateDirectory($"Dumps\\{outPath}\\Sounds");
+            Directory.CreateDirectory($"Dumps/{outPath}/Sounds");
             int soundint = 0;
             foreach (var snd in sounds)
             {
-                File.WriteAllBytes($"Dumps\\{outPath}\\Sounds\\{Utils.ClearName(snd.Name)}{getExtension(snd.Data)}", snd.Data);
+                File.WriteAllBytes($"Dumps/{outPath}/Sounds/{Utils.ClearName(snd.Name)}{getExtension(snd.Data)}", snd.Data);
                 soundint++;
                 Progress = new int[2] { soundint, sounds.Count };
             }
@@ -150,10 +150,10 @@ namespace Dumper
             int packedint = 0;
             if (binarydata.Count > 0)
             {
-                Directory.CreateDirectory($"Dumps\\{outPath}\\Packed Data\\Binary Data");
+                Directory.CreateDirectory($"Dumps/{outPath}/Packed Data/Binary Data");
                 foreach (var pack in binarydata)
                 {
-                    File.WriteAllBytes($"Dumps\\{outPath}\\Packed Data\\Binary Data\\{Path.GetFileNameWithoutExtension(pack.name + ".exe")}", pack.data);
+                    File.WriteAllBytes($"Dumps/{outPath}/Packed Data/Binary Data/{Path.GetFileNameWithoutExtension(pack.name + ".exe")}", pack.data);
                     packedint++;
                     Progress = new int[2] { packedint, binarydata.Count + packdata.Count };
                 }
@@ -162,15 +162,15 @@ namespace Dumper
             {
                 foreach (var pack in packdata)
                 {
-                    string dir = $"Dumps\\{outPath}\\Packed Data\\Pack Data\\";
+                    string dir = $"Dumps/{outPath}/Packed Data/Pack Data/";
                     if (Path.GetExtension(pack.PackFilename) == ".mfx")
-                        dir += "Extensions\\";
+                        dir += "Extensions/";
                     else if (Path.GetExtension(pack.PackFilename) == ".dll")
-                        dir += "Libraries\\";
+                        dir += "Libraries/";
                     else if (Path.GetExtension(pack.PackFilename) == ".ift" || Path.GetExtension(pack.PackFilename) == ".sft")
-                        dir += "Filters\\";
+                        dir += "Filters/";
                     else if (Path.GetExtension(pack.PackFilename) == ".mvx")
-                        dir += "Movements\\";
+                        dir += "Movements/";
                     Directory.CreateDirectory(dir);
                     File.WriteAllBytes(dir + Path.GetFileNameWithoutExtension(pack.PackFilename + ".exe"), pack.Data);
                     packedint++;

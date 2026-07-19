@@ -72,6 +72,26 @@ namespace CTFAK.CCN
         public BinaryFiles binaryFiles = new();
         public TrueTypeFonts ttfs;
 
+        // Raw chunk capture for round-trip re-save. Each entry stores the chunk id,
+        // compression flag, on-disk size and the verbatim payload as originally read.
+        // On Write, unmodified chunks are replayed byte-for-byte so the output stays faithful.
+        public class RawChunk
+        {
+            public short Id;
+            public ChunkFlags Flag;
+            public int Size;
+            public byte[] Data;
+        }
+        public List<RawChunk> RawChunks = new List<RawChunk>();
+
+        // Optional 32-byte file prefix (present when the file starts with 0x77777777).
+        // Preserved verbatim on re-save so the output loads identically.
+        public byte[] FilePrefix;
+
+        // Set of chunk ids that were edited through the mod API and must be re-serialized
+        // from the live model instead of replayed from RawChunks.
+        public HashSet<short> EditedChunks = new HashSet<short>();
+
         public void Read(ByteReader reader)
         {
             Logger.Log($"Running {builddate} build.", false);
@@ -96,7 +116,7 @@ namespace CTFAK.CCN
             Logger.Log("Fusion Build: " + productBuild);
             string gameExeName = Path.GetFileName(CTFAKCore.path);
             if (CTFAKCore.parameters.Contains("-trace_chunks"))
-                Directory.CreateDirectory($"CHUNK_TRACE\\{gameExeName}");
+                Directory.CreateDirectory($"CHUNK_TRACE/{gameExeName}");
             int chunkIndex = 0;
             int frameIndex = 0;
             List<Task> readingTasks = new List<Task>();
@@ -106,6 +126,15 @@ namespace CTFAK.CCN
                 if (reader.Tell() >= reader.Size()) break;
                 var newChunk = new Chunk();
                 var chunkData = newChunk.Read(reader);
+                // Capture the decompressed payload so the writer can replay this chunk
+                // verbatim on re-save (round-trip). Edited chunks are re-serialized instead.
+                RawChunks.Add(new RawChunk()
+                {
+                    Id = newChunk.Id,
+                    Flag = newChunk.Flag,
+                    Size = newChunk.Size,
+                    Data = newChunk.RawData
+                });
                 if (newChunk.Id == 32494 && Settings.F3) Settings.Fusion3Seed = true;
                 if (CTFAKCore.parameters.Contains("-onlyimages"))
                 {
@@ -135,8 +164,8 @@ namespace CTFAK.CCN
 
                     Logger.Log(
                         $"Encountered chunk: {chunkName}, chunk flag: {newChunk.Flag}, exe size: {newChunk.Size}, decompressed size: {chunkData.Length}");
-                    File.WriteAllBytes($"CHUNK_TRACE\\{gameExeName}\\{chunkName}-{chunkIndex}.bin",chunkData);
-                    Logger.Log($"Raw chunk data written to CHUNK_TRACE\\{gameExeName}\\{chunkName}-{chunkIndex}.bin");
+                    File.WriteAllBytes($"CHUNK_TRACE/{gameExeName}/{chunkName}-{chunkIndex}.bin",chunkData);
+                    Logger.Log($"Raw chunk data written to CHUNK_TRACE/{gameExeName}/{chunkName}-{chunkIndex}.bin");
                 }
                 string log = $"Reading Chunk {newChunk.Id}";
                 if (ChunkList.ChunkNames.TryGetValue(newChunk.Id, out chunkName))
@@ -411,7 +440,7 @@ namespace CTFAK.CCN
                     default:
                         Logger.Log("No Reader for Chunk " + newChunk.Id);
                         if (CTFAKCore.parameters.Contains("-dumpnewchunks"))
-                            File.WriteAllBytes("UnkChunks\\" + newChunk.Id + ".bin", chunkReader.ReadBytes());
+                            File.WriteAllBytes("UnkChunks/" + newChunk.Id + ".bin", chunkReader.ReadBytes());
                         break;
                 }
             }
@@ -421,6 +450,81 @@ namespace CTFAK.CCN
                 readingTask.Wait();
             }
             if (Settings.Fusion3Seed) Logger.LogWarning("Seeded Fusion 3");
+        }
+
+        // Re-save the game data. Unmodified chunks are replayed verbatim from RawChunks so the
+        // output stays byte-faithful; chunks marked in EditedChunks are re-serialized from the
+        // live model (e.g. image/font/sound banks edited through the mod API).
+        public void Write(ByteWriter fileWriter)
+        {
+            if (FilePrefix != null)
+                fileWriter.WriteBytes(FilePrefix);
+
+            // Re-emit the 4-byte magic and runtime/product header the reader consumed.
+            fileWriter.WriteAscii(Settings.Unicode ? "PAMU" : "PAME");
+            fileWriter.WriteUInt16((ushort)runtimeVersion);
+            fileWriter.WriteUInt16((ushort)runtimeSubversion);
+            fileWriter.WriteInt32(productVersion);
+            fileWriter.WriteInt32(productBuild);
+
+            foreach (var raw in RawChunks)
+            {
+                var chunk = new Chunk() { Id = raw.Id, Flag = raw.Flag };
+
+                if (EditedChunks.Contains(raw.Id) && TrySerializeChunk(raw.Id, out var serialized))
+                {
+                    chunk.Write(fileWriter, serialized);
+                    var chunkName = ChunkList.ChunkNames.TryGetValue(raw.Id, out var cn) ? cn : "?";
+                    Logger.Log($"Writing (edited) chunk {raw.Id} ({chunkName})");
+                    continue;
+                }
+
+                // Replay verbatim: write the captured on-disk payload byte-for-byte.
+                // This is flag-agnostic and survives encrypted/compressed chunks.
+                chunk.Size = raw.Size;
+                chunk.RawData = raw.Data;
+                chunk.WriteRaw(fileWriter);
+            }
+        }
+
+        // Serialize an edited chunk from the live model. Returns null if the chunk type has no
+        // working Write implementation yet (caller then falls back to the raw bytes).
+        private bool TrySerializeChunk(short id, out ByteWriter serialized)
+        {
+            serialized = null;
+            try
+            {
+                switch (id)
+                {
+                    case 26214: // Images
+                        if (Images == null) return false;
+                        serialized = new ByteWriter(new byte[Images.Items.Count * 64 + 1024]);
+                        Images.Write(serialized);
+                        return true;
+                    case 26215: // Fonts
+                        if (Fonts == null) return false;
+                        serialized = new ByteWriter(new byte[Fonts.Items.Count * 64 + 1024]);
+                        Fonts.Write(serialized);
+                        return true;
+                    case 26216: // Sounds
+                        if (Sounds == null) return false;
+                        serialized = new ByteWriter(new byte[Sounds.Items.Count * 64 + 1024]);
+                        Sounds.Write(serialized);
+                        return true;
+                    case 8755: // Global Strings
+                        if (globalStrings == null) return false;
+                        serialized = new ByteWriter(new byte[globalStrings.Items.Count * 64 + 1024]);
+                        globalStrings.Write(serialized);
+                        return true;
+                    default:
+                        return false;
+                }
+            }
+            catch (Exception e)
+            {
+                Logger.Log($"Failed to serialize chunk {id}, falling back to raw: {e.Message}", true, ConsoleColor.Yellow);
+                return false;
+            }
         }
     }
 }

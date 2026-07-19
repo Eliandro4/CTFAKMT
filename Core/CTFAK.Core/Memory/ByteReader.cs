@@ -9,7 +9,7 @@ namespace CTFAK.Memory
     {
         public ByteReader(Stream input) : base(input){}
         public ByteReader(Stream input, Encoding encoding) : base(input, encoding){}
-        public ByteReader(byte[] data) : base(new MemoryStream(data)){}
+        public ByteReader(byte[] data) : base(new MemoryStream(data == null ? Array.Empty<byte>() : (byte[])data.Clone())){}
         public ByteReader(string path, FileMode fileMode) : base(new FileStream(path, fileMode)){}
         public void Seek(Int64 offset, SeekOrigin seekOrigin = SeekOrigin.Begin)=>BaseStream.Seek(offset, seekOrigin);
         public void Skip(Int64 count)=>BaseStream.Seek(count, SeekOrigin.Current);

@@ -59,7 +59,7 @@ namespace Dumper
 
             foreach (var frame in frames)
             {
-                string frameFolder = $"Dumps\\{outPath}\\Sorted Images\\[{curframe}] {Utils.ClearName(frame.name)}\\";
+                string frameFolder = $"Dumps/{outPath}/Sorted Images/[{curframe}] {Utils.ClearName(frame.name)}/";
                 int retry = 0;
                 Task[] tasks = new Task[frame.objects.Count];
                 int i = 0;
@@ -69,7 +69,7 @@ namespace Dumper
                     var oi = objects[instance.objectInfo];
                     var newTask = new Task(() =>
                     {
-                        var objectFolder = frameFolder + Utils.ClearName(oi.name) + "\\";
+                        var objectFolder = frameFolder + Utils.ClearName(oi.name) + "/";
                         int retrysave = 0;
                     RETRY_SAVE:
                         try
@@ -84,7 +84,7 @@ namespace Dumper
                                         if (!LostandFound.Contains(bg.Image))
                                             LostandFound.Add(bg.Image);
                                         images[bg.Image].bitmap.Write($"{objectFolder}{oi.name}.png");
-                                        images[bg.Image].bitmap.Write($"{frameFolder}[UNSORTED]\\{oi.name}.png");
+                                        images[bg.Image].bitmap.Write($"{frameFolder}[UNSORTED]/{oi.name}.png");
                                         retry = 5;
                                     }
                                     catch
@@ -108,7 +108,7 @@ namespace Dumper
                                         if (!LostandFound.Contains(qbg.Image))
                                             LostandFound.Add(qbg.Image);
                                         images[qbg.Image].bitmap.Write($"{objectFolder}{oi.name}.png");
-                                        images[qbg.Image].bitmap.Write($"{frameFolder}[UNSORTED]\\{oi.name}.png");
+                                        images[qbg.Image].bitmap.Write($"{frameFolder}[UNSORTED]/{oi.name}.png");
                                         retry = 5;
                                     }
                                     catch
@@ -133,7 +133,7 @@ namespace Dumper
                                     foreach (var anim in common.Animations?.AnimationDict)
                                     {
                                         string animationFolder = "";
-                                        if (cntrAnims > 0) animationFolder = objectFolder + $"Animation {anim.Key}\\";
+                                        if (cntrAnims > 0) animationFolder = objectFolder + $"Animation {anim.Key}/";
                                         else animationFolder = objectFolder;
 
                                         int cntrDirs = 0;
@@ -151,7 +151,7 @@ namespace Dumper
                                             string directionFolder = "";
 
 
-                                            if (cntrDirs > 1) directionFolder = objectFolder + $"Direction {dir.Key}\\";
+                                            if (cntrDirs > 1) directionFolder = objectFolder + $"Direction {dir.Key}/";
                                             else if (cntrAnims > 1) directionFolder = animationFolder;
                                             else directionFolder = objectFolder;
                                             var frms = dir.Value.Frames;
@@ -167,7 +167,7 @@ namespace Dumper
                                                         if (!LostandFound.Contains(frm))
                                                             LostandFound.Add(frm);
                                                         images[frm].bitmap.Write($"{directionFolder}_{i}.png");
-                                                        images[frm].bitmap.Write($"{frameFolder}[UNSORTED]\\{oi.name}_{anim.Key}-{dir.Key}_{i}.png");
+                                                        images[frm].bitmap.Write($"{frameFolder}[UNSORTED]/{oi.name}_{anim.Key}-{dir.Key}_{i}.png");
                                                         retry = 5;
                                                     }
                                                     catch
@@ -201,7 +201,7 @@ namespace Dumper
                                                     if (!LostandFound.Contains(cntrFrm))
                                                         LostandFound.Add(cntrFrm);
                                                     bmp.Write($"{objectFolder}{cntrFrm}.png");
-                                                    bmp.Write($"{frameFolder}[UNSORTED]\\{oi.name}_{cntrFrm}.png");
+                                                    bmp.Write($"{frameFolder}[UNSORTED]/{oi.name}_{cntrFrm}.png");
                                                     retry = 5;
                                                 }
                                                 catch
@@ -230,7 +230,7 @@ namespace Dumper
                                                 output.Add(text.Value);
 
                                             File.WriteAllLines($"{objectFolder}Paragraphs.txt", output);
-                                            File.WriteAllLines($"{frameFolder}[UNSORTED]\\{oi.name}.txt", output);
+                                            File.WriteAllLines($"{frameFolder}[UNSORTED]/{oi.name}.txt", output);
                                             retry = 5;
                                         }
                                         catch (Exception ex)
@@ -290,7 +290,7 @@ namespace Dumper
             RETRY_SAVE2:
             try
             {
-                string lafFolder = $"Dumps\\{outPath}\\Sorted Images\\[~Lost and Found~]\\";
+                string lafFolder = $"Dumps/{outPath}/Sorted Images/[~Lost and Found~]/";
                 foreach (var img in images)
                 {
                     savedvar = img.Key;

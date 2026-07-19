@@ -145,7 +145,7 @@ namespace CTFAK.CCN.Chunks.Objects
                     default:
                         Logger.Log("No Reader for ObjectInfo Chunk " + newChunk.Id);
                         if (CTFAKCore.parameters.Contains("-dumpnewchunks"))
-                            File.WriteAllBytes("UnkChunks\\ObjectInfo\\" + newChunk.Id + ".bin", chunkReader.ReadBytes());
+                            File.WriteAllBytes("UnkChunks/ObjectInfo/" + newChunk.Id + ".bin", chunkReader.ReadBytes());
                         break;
                 }
             }

@@ -71,7 +71,9 @@ namespace CTFAK.Core.CCN.Chunks.Banks.ImageBank
 
         public override void Write(ByteWriter writer)
         {
-            throw new NotImplementedException();
+            writer.WriteInt32(Items.Count);
+            foreach (var img in Items.Values)
+                img.WriteCcn(writer);
         }
     }
 }

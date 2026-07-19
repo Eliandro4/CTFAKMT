@@ -344,6 +344,30 @@ namespace CTFAK.Core.CCN.Chunks.Banks.ImageBank
             return (int)(chunkSize + 4 + start);
         }
 
+        // CCN writer: serializes the image in its current graphic mode without the MFA
+        // conversion done by WriteNew. Layout matches FusionImage.Read for normal CCN images.
+        public void WriteCcn(ByteWriter writer)
+        {
+            byte[] compressedImg = Decompressor.CompressBlock(imageData);
+
+            writer.WriteInt32(Handle);
+            writer.WriteInt32(Checksum);
+            writer.WriteInt32(references);
+            writer.WriteUInt32((uint)compressedImg.Length + 4);
+            writer.WriteInt16((short)Width);
+            writer.WriteInt16((short)Height);
+            writer.WriteInt8(GraphicMode);
+            writer.WriteInt8((byte)Flags.flag);
+            writer.WriteInt16(0);
+            writer.WriteInt16(HotspotX);
+            writer.WriteInt16(HotspotY);
+            writer.WriteInt16(ActionX);
+            writer.WriteInt16(ActionY);
+            writer.WriteColor(Transparent);
+            writer.WriteInt32(imageData.Length);
+            writer.WriteBytes(compressedImg);
+        }
+
         public override void Write(ByteWriter writer)
         {
         }

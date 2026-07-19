@@ -20,7 +20,7 @@ namespace CTFAK.Utils
         }
         public static byte[] GetBuffer(this ByteWriter writer)
         {
-            var buf = ((MemoryStream)writer.BaseStream).GetBuffer();
+            var buf = writer.ToArray();
             Array.Resize(ref buf, (int)writer.Size());
             return buf;
         }

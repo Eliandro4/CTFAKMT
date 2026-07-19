@@ -22,10 +22,15 @@ namespace CTFAK.EXE
         {
             var reader = new ByteReader(gamePath, System.IO.FileMode.Open);
 
+            byte[] prefix = null;
             if (reader.PeekInt32() == 2004318071)
-                reader.Skip(32);
+            {
+                reader.Seek(0);
+                prefix = reader.ReadBytes(32);
+            }
 
             game = new GameData();
+            game.FilePrefix = prefix;
             game.Read(reader);
         }
 

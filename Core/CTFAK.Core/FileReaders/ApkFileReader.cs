@@ -18,7 +18,7 @@ namespace CTFAK.FileReaders
         public static string ExtractCCN(string apkPath)
         {
             Settings.gameType = Settings.GameType.ANDROID;
-            Directory.CreateDirectory(Path.GetTempPath() + "CTFAK\\AndroidSounds");
+            Directory.CreateDirectory(Path.GetTempPath() + "CTFAK/AndroidSounds");
             using (ZipArchive archive = ZipFile.OpenRead(apkPath))
             {
                 foreach (ZipArchiveEntry entry in archive.Entries)

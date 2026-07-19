@@ -104,7 +104,7 @@ namespace CTFAK.CCN.Chunks.Objects
             if (Settings.Build >= 284 && Settings.gameType==Settings.GameType.NORMAL)
             {
                 var size = reader.ReadInt32();
-                //File.WriteAllBytes($"FNAFSLTest\\{Utils.Utils.ClearName(Parent.name + "-" + Parent.handle)}.chunk", reader.ReadBytes(size - 4));
+                //File.WriteAllBytes($"FNAFSLTest/{Utils.Utils.ClearName(Parent.name + "-" + Parent.handle)}.chunk", reader.ReadBytes(size - 4));
                 //reader.Skip(-size + 4);
                 reader.Skip(2);
                 var check = reader.ReadInt32();
@@ -283,7 +283,7 @@ namespace CTFAK.CCN.Chunks.Objects
                 else if (Settings.Build == 288 || Settings.Build == 284)
                 {
                     var size = reader.ReadInt32();
-                    //File.WriteAllBytes($"FNAFWorldTest\\{Utils.Utils.ClearName(Parent.name + "-" + Parent.handle)}.chunk", reader.ReadBytes(size - 4));
+                    //File.WriteAllBytes($"FNAFWorldTest/{Utils.Utils.ClearName(Parent.name + "-" + Parent.handle)}.chunk", reader.ReadBytes(size - 4));
                     //reader.Skip(-size + 4);
                     _movementsOffset = reader.ReadInt16();
                     var version = reader.ReadInt16();
@@ -312,7 +312,7 @@ namespace CTFAK.CCN.Chunks.Objects
                 else
                 {
                     var size = reader.ReadInt32();
-                    //File.WriteAllBytes($"FNAFWorldTest\\{Utils.Utils.ClearName(Parent.name + "-" + Parent.handle)}.chunk",reader.ReadBytes(size-4));
+                    //File.WriteAllBytes($"FNAFWorldTest/{Utils.Utils.ClearName(Parent.name + "-" + Parent.handle)}.chunk",reader.ReadBytes(size-4));
                     //reader.Skip(-size+4);
                     _movementsOffset = reader.ReadInt16();
                     _animationsOffset = reader.ReadInt16();

@@ -133,7 +133,7 @@ namespace CTFAK.MFA
                     Loader = null;
                     //Logger.Log("No Reader for Chunk " + Id);
                     if (CTFAKCore.parameters.Contains("-dumpnewchunks"))
-                        File.WriteAllBytes("UnkChunks\\" + Id + ".bin", dataReader.ReadBytes());
+                        File.WriteAllBytes("UnkChunks/" + Id + ".bin", dataReader.ReadBytes());
                     break;
 
             }

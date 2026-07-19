@@ -336,7 +336,7 @@ namespace CTFAK.CCN.Chunks.Frame
                     default:
                         Logger.Log("No Reader for Frame Chunk " + newChunk.Id);
                         if (CTFAKCore.parameters.Contains("-dumpnewchunks"))
-                            File.WriteAllBytes("UnkChunks\\Frame\\" + newChunk.Id + ".bin", chunkReader.ReadBytes());
+                            File.WriteAllBytes("UnkChunks/Frame/" + newChunk.Id + ".bin", chunkReader.ReadBytes());
                         break;
                 }
             }
