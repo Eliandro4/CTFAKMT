@@ -19,7 +19,7 @@ namespace CTFAK.CCN.Chunks
 
         public override void Write(ByteWriter writer)
         {
-            throw new NotImplementedException();
+            writer.WriteWideString(value ?? "");
         }
     }
     class AppName:StringChunk

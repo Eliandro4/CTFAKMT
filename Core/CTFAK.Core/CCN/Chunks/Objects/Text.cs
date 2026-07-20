@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.IO;
 using System.Xml.Schema;
 using CTFAK.Memory;
 using CTFAK.Utils;
@@ -62,7 +63,29 @@ namespace CTFAK.CCN.Chunks.Objects
 
         public override void Write(ByteWriter Writer)
         {
-            throw new System.NotImplementedException();
+            var paragraphOffsets = new List<int>();
+            var paragraphData = new ByteWriter(new MemoryStream());
+
+            foreach (var item in Items)
+            {
+                paragraphOffsets.Add((int)paragraphData.Tell());
+                paragraphData.WriteUInt16(item.FontHandle);
+                paragraphData.WriteUInt16((ushort)item.Flags.flag);
+                paragraphData.WriteColor(item.Color);
+                paragraphData.WriteWideString(item.Value ?? "");
+            }
+
+            var paragraphBytes = paragraphData.ToArray();
+
+            Writer.WriteInt32(Width);
+            Writer.WriteInt32(Height);
+            Writer.WriteInt32(Items.Count);
+
+            var baseOffset = 8 + Items.Count * 4;
+            for (int i = 0; i < Items.Count; i++)
+                Writer.WriteInt32(baseOffset + paragraphOffsets[i]);
+
+            Writer.WriteBytes(paragraphBytes);
         }
     }
 
@@ -108,7 +131,10 @@ namespace CTFAK.CCN.Chunks.Objects
 
         public override void Write(ByteWriter Writer)
         {
-            throw new System.NotImplementedException();
+            Writer.WriteUInt16(FontHandle);
+            Writer.WriteUInt16((ushort)Flags.flag);
+            Writer.WriteColor(Color);
+            Writer.WriteWideString(Value ?? "");
         }
 
 

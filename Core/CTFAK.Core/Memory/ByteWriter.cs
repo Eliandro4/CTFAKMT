@@ -90,13 +90,23 @@ namespace CTFAK.Memory
 
         public void WriteUnicode(string value, bool appendZero = false)
         {
-            var bytes = Encoding.Unicode.GetBytes(value);
+            var bytes = Encoding.Unicode.GetBytes(value ?? "");
             for (int i = 0; i < bytes.Length; i++)
             {
                 WriteInt8(bytes[i]);
             }
 
             if (appendZero) WriteInt16(0);
+        }
+
+        public void WriteWideString(string value)
+        {
+            var bytes = Encoding.Unicode.GetBytes(value ?? "");
+            for (int i = 0; i < bytes.Length; i++)
+            {
+                WriteInt8(bytes[i]);
+            }
+            WriteInt16(0);
         }
 
         public void WriteColor(Color color)

@@ -94,9 +94,22 @@ namespace CTFAKModTool.Cli
                 ctx.ParseResult.GetValueForOption(outOpt),
                 ctx.ParseResult.GetValueForOption(replaceImages)));
 
+            var importStringsOpt = new Option<FileInfo>("-i", "--input")
+            {
+                Description = "Strings file to import (key=value format)."
+            };
+            var importCommand = new Command("import", "Import strings back into the game data file")
+            {
+                fileArgument, outOpt, importStringsOpt
+            };
+            importCommand.SetHandler(ctx => Import(
+                ctx.ParseResult.GetValueForArgument(fileArgument),
+                ctx.ParseResult.GetValueForOption(outOpt),
+                ctx.ParseResult.GetValueForOption(importStringsOpt)));
+
             var root = new RootCommand("CTFAKMT modding CLI — load, inspect, edit and re-save Clickteam Fusion games.")
             {
-                infoCommand, dumpCommand, loadCommand, scriptCommand, replaceCommand
+                infoCommand, dumpCommand, loadCommand, scriptCommand, replaceCommand, importCommand
             };
 
             return root.Invoke(args);
@@ -211,6 +224,22 @@ namespace CTFAKModTool.Cli
                         api.ReplaceImage(parts[0], parts[1]);
                 }
             }
+
+            Save(game, output.FullName);
+            Console.WriteLine($"Saved modified data to {output.FullName}");
+            return 0;
+        }
+
+        private static int Import(FileInfo file, FileInfo output, FileInfo stringsFile)
+        {
+            if (!file.Exists) { Console.WriteLine("File not found: " + file.FullName); return 1; }
+            if (output == null) { Console.WriteLine("An --output file is required for import."); return 1; }
+            if (stringsFile == null || !stringsFile.Exists) { Console.WriteLine("An --input strings file is required for import."); return 1; }
+            var game = LoadGame(file);
+            ModGlobals.Data = game;
+            var api = new ModScriptInterface();
+
+            api.ImportStrings(stringsFile.FullName);
 
             Save(game, output.FullName);
             Console.WriteLine($"Saved modified data to {output.FullName}");

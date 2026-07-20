@@ -30,7 +30,36 @@ namespace CTFAK.CCN.Chunks.Frame
 
         public override void Write(ByteWriter Writer)
         {
-            throw new NotImplementedException();
+            var data = new ByteWriter(new MemoryStream());
+
+            data.WriteAscii(Header);
+            data.WriteInt16((short)MaxObjects);
+            data.WriteInt16((short)MaxObjectInfo);
+            data.WriteInt16((short)NumberOfPlayers);
+            foreach (var cond in NumberOfConditions)
+                data.WriteInt16((short)cond);
+            data.WriteInt16((short)QualifiersList.Count);
+            foreach (var qual in QualifiersList)
+                qual.Write(data);
+
+            var egData = new ByteWriter(new MemoryStream());
+            foreach (var eg in Items)
+                eg.Write(egData);
+
+            data.WriteAscii(EventCount);
+            var eResSize = 4 + 4 + (int)egData.Size() + 4 + 4;
+            data.WriteInt32(eResSize);
+
+            data.WriteAscii(EventgroupData);
+            data.WriteInt32((int)egData.Size());
+            data.WriteWriter(egData);
+
+            data.WriteAscii(EventOptions);
+            data.WriteInt32(OptionFlags);
+
+            data.WriteAscii(End);
+
+            Writer.WriteWriter(data);
         }
 
 

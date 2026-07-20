@@ -25,7 +25,13 @@ namespace CTFAK.Core.CCN.Chunks.Objects
 
         public override void Write(ByteWriter Writer)
         {
-
+            Writer.WriteInt32(odCx);
+            Writer.WriteInt32(odCy);
+            Writer.WriteInt16(odVersion);
+            Writer.WriteInt16(odNStartFrame);
+            Writer.WriteInt32(odOptions);
+            if (!string.IsNullOrEmpty(odName))
+                Writer.WriteWideString(odName);
         }
     }
 }

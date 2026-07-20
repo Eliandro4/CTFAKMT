@@ -1,4 +1,5 @@
-﻿using CTFAK.CCN.Chunks.Objects;
+﻿using CTFAK.CCN;
+using CTFAK.CCN.Chunks.Objects;
 using CTFAK.Memory;
 using CTFAK.Utils;
 using System;
@@ -113,6 +114,8 @@ namespace CTFAK.CCN.Chunks.Frame
         public byte blend;
         public int randomSeed;
         public int movementTimer = 60;
+        public List<Chunk> RawSubChunks = new List<Chunk>();
+        public bool EventsModified = false;
 
         public override void Read(ByteReader reader)
         {
@@ -121,6 +124,7 @@ namespace CTFAK.CCN.Chunks.Frame
                 if (reader.Tell() >= reader.Size()) break;
                 var newChunk = new Chunk();
                 var chunkData = newChunk.Read(reader);
+                RawSubChunks.Add(newChunk);
                 var chunkReader = new ByteReader(chunkData);
                 if (CTFAKCore.parameters.Contains("-onlyimages"))
                 {
@@ -347,7 +351,21 @@ namespace CTFAK.CCN.Chunks.Frame
 
         public override void Write(ByteWriter writer)
         {
-            throw new NotImplementedException();
+            var data = new ByteWriter(new MemoryStream());
+            foreach (var chunk in RawSubChunks)
+            {
+                if (chunk.Id == 13117 && EventsModified && events != null)
+                {
+                    var eventsData = new ByteWriter(new MemoryStream());
+                    events.Write(eventsData);
+                    chunk.Write(data, eventsData);
+                }
+                else
+                {
+                    chunk.WriteRaw(data);
+                }
+            }
+            writer.WriteWriter(data);
         }
     }
     public class Layers : ChunkLoader

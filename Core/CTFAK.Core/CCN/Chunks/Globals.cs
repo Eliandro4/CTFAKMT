@@ -38,7 +38,9 @@ namespace CTFAK.CCN.Chunks
 
         public override void Write(ByteWriter writer)
         {
-            throw new System.NotImplementedException();
+            writer.WriteInt16((short)Items.Count);
+            foreach (var obj in Items)
+                writer.WriteWideString(obj?.ToString() ?? "");
         }
     }
     public class GlobalStrings:ChunkLoader
@@ -62,7 +64,9 @@ namespace CTFAK.CCN.Chunks
 
         public override void Write(ByteWriter writer)
         {
-            throw new System.NotImplementedException();
+            writer.WriteInt32(Items.Count);
+            foreach (var str in Items)
+                writer.WriteWideString(str ?? "");
         }
     }
 }

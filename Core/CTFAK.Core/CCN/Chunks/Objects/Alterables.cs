@@ -35,7 +35,10 @@ namespace CTFAK.CCN.Chunks.Objects
 
         public override void Write(ByteWriter writer)
         {
-            throw new System.NotImplementedException();
+            writer.WriteInt16((short)Items.Count);
+            foreach (var val in Items)
+                writer.WriteInt32(val);
+            writer.WriteInt32(Flags);
         }
     }
 
@@ -62,7 +65,9 @@ namespace CTFAK.CCN.Chunks.Objects
 
         public override void Write(ByteWriter writer)
         {
-            throw new System.NotImplementedException();
+            writer.WriteInt16((short)Items.Count);
+            foreach (var str in Items)
+                writer.WriteWideString(str ?? "");
         }
     }
 }

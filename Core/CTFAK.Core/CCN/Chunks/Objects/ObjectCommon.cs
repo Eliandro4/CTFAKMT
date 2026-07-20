@@ -452,7 +452,133 @@ namespace CTFAK.CCN.Chunks.Objects
 
         public override void Write(ByteWriter writer)
         {
-            throw new NotImplementedException();
+            var pos = (int)writer.Tell() + 4;
+            writer.WriteInt32(0);
+            writer.WriteInt16(0);
+            writer.WriteInt32(0);
+            writer.WriteInt16(0);
+            writer.WriteInt16(0);
+            writer.WriteInt16(0);
+            writer.WriteInt16(0);
+            writer.WriteInt16(0);
+            writer.WriteInt16(0);
+            writer.WriteInt16(0);
+            for (int i = 0; i < 8; i++) writer.WriteInt16(0);
+            writer.WriteInt16(0);
+            writer.WriteInt16(0);
+            writer.WriteInt16(0);
+            writer.WriteInt16(0);
+            writer.WriteInt16(0);
+            writer.WriteUInt16((ushort)(Flags.flag & 0xFFFF));
+            writer.WriteInt16(6);
+            writer.WriteInt16(0);
+            writer.WriteInt16(0);
+            writer.WriteInt16(0);
+            writer.WriteInt16(0);
+            writer.WriteInt16(0);
+            writer.WriteInt16(0);
+            writer.WriteInt16(0);
+            writer.WriteInt16(0);
+            writer.WriteInt16(0);
+            writer.WriteInt16(0);
+            writer.WriteInt16(0);
+            writer.WriteInt16(0);
+            writer.WriteInt16(0);
+            writer.WriteInt16(0);
+            writer.WriteInt16(0);
+            writer.WriteInt32(0);
+            writer.WriteUInt16((ushort)NewFlags.flag);
+            writer.WriteUInt16((ushort)Preferences.flag);
+            writer.WriteAscii("TEXT");
+            writer.WriteColor(BackColor);
+            writer.WriteUInt32(0);
+            writer.WriteUInt32(0);
+
+            var valuesPos = (int)writer.Tell() - pos;
+            var stringsPos = valuesPos + 100;
+            var systemPos = stringsPos + 100;
+            var animationsPos = systemPos + 100;
+            var movementsPos = animationsPos + 100;
+            var counterPos = movementsPos + 100;
+            var extensionPos = counterPos + 100;
+
+            if (Values != null)
+            {
+                var cur = (int)writer.Tell();
+                writer.Seek(pos + 2, SeekOrigin.Begin);
+                writer.WriteInt16((short)(cur - pos));
+                writer.Seek(cur, SeekOrigin.Begin);
+            }
+            else writer.WriteInt16(0);
+
+            if (Strings != null)
+            {
+                var cur = (int)writer.Tell();
+                writer.Seek(pos + 4, SeekOrigin.Begin);
+                writer.WriteInt16((short)(cur - pos));
+                writer.Seek(cur, SeekOrigin.Begin);
+            }
+            else writer.WriteInt16(0);
+
+            if (Animations != null)
+            {
+                var cur = (int)writer.Tell();
+                writer.Seek(pos + 6, SeekOrigin.Begin);
+                writer.WriteInt16((short)(cur - pos));
+                writer.Seek(cur, SeekOrigin.Begin);
+            }
+            else writer.WriteInt16(0);
+
+            if (Movements != null)
+            {
+                var cur = (int)writer.Tell();
+                writer.Seek(pos + 8, SeekOrigin.Begin);
+                writer.WriteInt16((short)(cur - pos));
+                writer.Seek(cur, SeekOrigin.Begin);
+            }
+            else writer.WriteInt16(0);
+
+            if (Counter != null)
+            {
+                var cur = (int)writer.Tell();
+                writer.Seek(pos + 10, SeekOrigin.Begin);
+                writer.WriteInt16((short)(cur - pos));
+                writer.Seek(cur, SeekOrigin.Begin);
+            }
+            else writer.WriteInt16(0);
+
+            if (ExtensionData != null && ExtensionData.Length > 0)
+            {
+                var cur = (int)writer.Tell();
+                writer.Seek(pos + 12, SeekOrigin.Begin);
+                writer.WriteInt16((short)(cur - pos));
+                writer.Seek(cur, SeekOrigin.Begin);
+            }
+            else writer.WriteInt16(0);
+
+            if (Text != null)
+            {
+                var cur = (int)writer.Tell();
+                writer.Seek(pos, SeekOrigin.Begin);
+                writer.WriteInt16((short)(cur - pos));
+                writer.Seek(cur, SeekOrigin.Begin);
+                Text.Write(writer);
+            }
+
+            Values?.Write(writer);
+            Strings?.Write(writer);
+            Animations?.Write(writer);
+            Movements?.Write(writer);
+            Counter?.Write(writer);
+            if (ExtensionData != null && ExtensionData.Length > 0)
+            {
+                writer.WriteInt32(ExtensionData.Length + 20);
+                writer.WriteInt32(0);
+                writer.WriteInt32(ExtensionVersion);
+                writer.WriteInt32(ExtensionId);
+                writer.WriteInt32(ExtensionPrivate);
+                writer.WriteBytes(ExtensionData);
+            }
         }
     }
 }

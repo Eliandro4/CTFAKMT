@@ -41,7 +41,25 @@ namespace CTFAK.CCN.Chunks.Objects
 
         public override void Write(ByteWriter writer)
         {
-            throw new System.NotImplementedException();
+            var count = AnimationDict.Count;
+            var animOffsets = new int[count];
+            var animData = new ByteWriter(new MemoryStream());
+
+            for (int i = 0; i < count; i++)
+            {
+                animOffsets[i] = (int)animData.Tell();
+                var animWriter = new ByteWriter(new MemoryStream());
+                if (AnimationDict.ContainsKey(i))
+                    AnimationDict[i].Write(animWriter);
+                animData.WriteWriter(animWriter);
+            }
+
+            writer.WriteInt16((short)(4 + count * 2 + animData.ToArray().Length));
+            writer.WriteInt16((short)count);
+            var baseOffset = 4 + count * 2;
+            for (int i = 0; i < count; i++)
+                writer.WriteInt16((short)(baseOffset + animOffsets[i]));
+            writer.WriteWriter(animData);
         }
     }
 
@@ -80,7 +98,25 @@ namespace CTFAK.CCN.Chunks.Objects
 
         public override void Write(ByteWriter writer)
         {
-            throw new System.NotImplementedException();
+            var dirOffsets = new int[32];
+            var dirData = new ByteWriter(new MemoryStream());
+
+            for (int i = 0; i < 32; i++)
+            {
+                dirOffsets[i] = 0;
+                if (DirectionDict.ContainsKey(i))
+                {
+                    dirOffsets[i] = (int)dirData.Tell();
+                    var dirWriter = new ByteWriter(new MemoryStream());
+                    DirectionDict[i].Write(dirWriter);
+                    dirData.WriteWriter(dirWriter);
+                }
+            }
+
+            var baseOffset = 32 * 2;
+            for (int i = 0; i < 32; i++)
+                writer.WriteInt16((short)(baseOffset + dirOffsets[i]));
+            writer.WriteWriter(dirData);
         }
 
 
@@ -118,7 +154,13 @@ namespace CTFAK.CCN.Chunks.Objects
 
         public override void Write(ByteWriter writer)
         {
-            throw new System.NotImplementedException();
+            writer.WriteUInt8((sbyte)MinSpeed);
+            writer.WriteUInt8((sbyte)MaxSpeed);
+            writer.WriteInt16((short)Repeat);
+            writer.WriteInt16((short)BackTo);
+            writer.WriteUInt16((ushort)Frames.Count);
+            foreach (var handle in Frames)
+                writer.WriteInt16((short)handle);
         }
 
 

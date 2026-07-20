@@ -21,7 +21,10 @@ namespace CTFAK.CCN.Chunks.Objects
 
         public override void Write(ByteWriter writer)
         {
-            throw new NotImplementedException();
+            writer.WriteInt16(Size);
+            writer.WriteInt32(Initial);
+            writer.WriteInt32(Minimum);
+            writer.WriteInt32(Maximum);
         }
 
 

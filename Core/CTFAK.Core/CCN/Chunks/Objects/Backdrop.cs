@@ -57,7 +57,15 @@ namespace CTFAK.CCN.Chunks.Objects
 
         public override void Write(ByteWriter Writer)
         {
-            throw new System.NotImplementedException();
+            Writer.WriteInt32(Size);
+            Writer.WriteInt16((short)ObstacleType);
+            Writer.WriteInt16((short)CollisionType);
+            if (!Settings.Old)
+            {
+                Writer.WriteInt32(Width);
+                Writer.WriteInt32(Height);
+            }
+            Writer.WriteInt16((short)Image);
         }
     }
 
@@ -78,7 +86,12 @@ namespace CTFAK.CCN.Chunks.Objects
 
         public override void Write(ByteWriter Writer)
         {
-            throw new System.NotImplementedException();
+            Writer.WriteInt32(Size);
+            Writer.WriteInt16((short)ObstacleType);
+            Writer.WriteInt16((short)CollisionType);
+            Writer.WriteInt32(Width);
+            Writer.WriteInt32(Height);
+            Shape.Write(Writer);
         }
     }
 
@@ -122,7 +135,25 @@ namespace CTFAK.CCN.Chunks.Objects
 
         public override void Write(ByteWriter Writer)
         {
-            throw new System.NotImplementedException();
+            Writer.WriteInt16(BorderSize);
+            Writer.WriteColor(BorderColor);
+            Writer.WriteInt16(ShapeType);
+            Writer.WriteInt16(FillType);
+            if (ShapeType == 1)
+            {
+                Writer.WriteInt16(LineFlags);
+            }
+            else if (FillType == 1)
+            {
+                Writer.WriteColor(Color1);
+            }
+            else if (FillType == 2)
+            {
+                Writer.WriteColor(Color1);
+                Writer.WriteColor(Color2);
+                Writer.WriteInt16(GradFlags);
+            }
+            Writer.WriteInt16(Image);
         }
     }
 }

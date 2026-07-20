@@ -12,6 +12,11 @@ namespace CTFAK.MMFParser.EXE.Loaders.Events.Parameters
             Value = reader.ReadSingle();
            
         }
+        public override void Write(ByteWriter Writer)
+        {
+            Writer.WriteSingle(Value);
+        }
+
         public override string ToString()
         {
             return $"{this.GetType().Name} value: {Value}";

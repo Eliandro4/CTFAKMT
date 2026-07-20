@@ -91,6 +91,7 @@ namespace CTFAK.CCN
         // Set of chunk ids that were edited through the mod API and must be re-serialized
         // from the live model instead of replayed from RawChunks.
         public HashSet<short> EditedChunks = new HashSet<short>();
+        public HashSet<int> ModifiedFrameIndices = new HashSet<int>();
 
         public void Read(ByteReader reader)
         {
@@ -467,9 +468,19 @@ namespace CTFAK.CCN
             fileWriter.WriteInt32(productVersion);
             fileWriter.WriteInt32(productBuild);
 
+            int frameIndex = 0;
             foreach (var raw in RawChunks)
             {
                 var chunk = new Chunk() { Id = raw.Id, Flag = raw.Flag };
+
+                if (raw.Id == 13107 && frameIndex < frames.Count && ModifiedFrameIndices.Contains(frameIndex))
+                {
+                    var frameData = new ByteWriter(new MemoryStream());
+                    frames[frameIndex].Write(frameData);
+                    chunk.Write(fileWriter, frameData);
+                    frameIndex++;
+                    continue;
+                }
 
                 if (EditedChunks.Contains(raw.Id) && TrySerializeChunk(raw.Id, out var serialized))
                 {
@@ -484,6 +495,8 @@ namespace CTFAK.CCN
                 chunk.Size = raw.Size;
                 chunk.RawData = raw.Data;
                 chunk.WriteRaw(fileWriter);
+
+                if (raw.Id == 13107) frameIndex++;
             }
         }
 
@@ -515,6 +528,50 @@ namespace CTFAK.CCN
                         if (globalStrings == null) return false;
                         serialized = new ByteWriter(new byte[globalStrings.Items.Count * 64 + 1024]);
                         globalStrings.Write(serialized);
+                        return true;
+                    case 8740: // App Name
+                        if (string.IsNullOrEmpty(name)) return false;
+                        serialized = new ByteWriter(new byte[name.Length * 2 + 64]);
+                        var appName = new AppName { value = name };
+                        appName.Write(serialized);
+                        return true;
+                    case 8741: // App Author
+                        if (string.IsNullOrEmpty(author)) return false;
+                        serialized = new ByteWriter(new byte[author.Length * 2 + 64]);
+                        var appAuthor = new AppAuthor { value = author };
+                        appAuthor.Write(serialized);
+                        return true;
+                    case 8763: // Copyright
+                        if (string.IsNullOrEmpty(copyright)) return false;
+                        serialized = new ByteWriter(new byte[copyright.Length * 2 + 64]);
+                        var copy = new Copyright { value = copyright };
+                        copy.Write(serialized);
+                        return true;
+                    case 8788: // Object Names
+                        if (frameitems == null || frameitems.Count == 0) return false;
+                        serialized = new ByteWriter(new byte[frameitems.Count * 256 + 1024]);
+                        foreach (var kv in frameitems.OrderBy(kv => kv.Key))
+                        {
+                            serialized.WriteWideString(kv.Value.name ?? "");
+                        }
+                        return true;
+                    case 8790: // Object Properties
+                        if (frameitems == null || frameitems.Count == 0) return false;
+                        var propsWriter = new ByteWriter(new MemoryStream());
+                        propsWriter.WriteInt32(0);
+                        foreach (var kv in frameitems.OrderBy(kv => kv.Key))
+                        {
+                            var objWriter = new ByteWriter(new MemoryStream());
+                            if (kv.Value.properties != null)
+                                kv.Value.properties.Write(objWriter);
+                            var objBytes = objWriter.ToArray();
+                            var compressed = CTFAK.Memory.Decompressor.CompressBlock(objBytes);
+                            propsWriter.WriteInt32(compressed.Length);
+                            propsWriter.WriteBytes(compressed);
+                            propsWriter.WriteBytes(new byte[4]);
+                        }
+                        serialized = new ByteWriter(new byte[(int)propsWriter.Size() + 1024]);
+                        serialized.WriteWriter(propsWriter);
                         return true;
                     default:
                         return false;

@@ -97,15 +97,18 @@ namespace CTFAK.CCN.Chunks
                     break;
                 case ChunkFlags.Encrypted:
                     //newWriter = new ByteWriter(new MemoryStream(Decryption.TransformChunk(dataWriter.ToArray())));
+                    newWriter = dataWriter;
                     break;
                 case ChunkFlags.Compressed:
                     newWriter = Decompressor.Compress(dataWriter.ToArray());
                     break;
                 case ChunkFlags.CompressedAndEncrypted:
                     // TODO Implement
+                    newWriter = dataWriter;
                     break;
 
             }
+            fileWriter.WriteInt32((int)newWriter.Size());
             fileWriter.WriteWriter(newWriter);
 
         }

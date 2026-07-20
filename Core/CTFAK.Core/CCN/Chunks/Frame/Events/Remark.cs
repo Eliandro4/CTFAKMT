@@ -5,6 +5,8 @@ namespace CTFAK.MMFParser.EXE.Loaders.Events.Parameters
 {
     public class Remark : ParameterCommon
     {
-        
+        public override void Write(ByteWriter Writer)
+        {
+        }
     }
 }

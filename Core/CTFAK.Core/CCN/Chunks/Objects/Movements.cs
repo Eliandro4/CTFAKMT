@@ -31,7 +31,13 @@ namespace CTFAK.CCN.Chunks.Objects
 
         public override void Write(ByteWriter Writer)
         {
-            throw new NotImplementedException();
+            Writer.WriteInt32(Items.Count);
+            foreach (var mov in Items)
+            {
+                var movWriter = new ByteWriter(new MemoryStream());
+                mov.Write(movWriter);
+                Writer.WriteWriter(movWriter);
+            }
         }
 
 
@@ -148,7 +154,33 @@ namespace CTFAK.CCN.Chunks.Objects
 
         public override void Write(ByteWriter Writer)
         {
-            throw new NotImplementedException();
+            if (Settings.Old)
+            {
+                Writer.WriteUInt16(Player);
+                Writer.WriteUInt16(Type);
+                Writer.WriteInt8(MovingAtStart);
+                Writer.WriteBytes(new byte[3]);
+                Writer.WriteInt32(DirectionAtStart);
+                Loader?.Write(Writer);
+            }
+            else
+            {
+                var dataWriter = new ByteWriter(new MemoryStream());
+                dataWriter.WriteUInt16(Player);
+                dataWriter.WriteUInt16(Type);
+                dataWriter.WriteInt8(MovingAtStart);
+                dataWriter.WriteInt8(0);
+                dataWriter.WriteBytes(new byte[2]);
+                dataWriter.WriteInt32(DirectionAtStart);
+                Loader?.Write(dataWriter);
+                var dataBytes = dataWriter.ToArray();
+
+                Writer.WriteInt32(0);
+                Writer.WriteInt32(0);
+                Writer.WriteInt32(0);
+                Writer.WriteInt32(dataBytes.Length);
+                Writer.WriteWriter(dataWriter);
+            }
         }
 
 
